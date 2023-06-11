@@ -1,6 +1,76 @@
 """
 Program used to import a password database exported from Enpass in json format
 It generates an output database with much less information.
+
+The input file is dictionary containing two lists: folders and items. Each folder is in turn a dictionary
+of string values. Each item is a dictionary containing numbers, strings, lists of strings and list of
+subdictionaries. Only a few elements in the items are really relevant.
+
+{
+    "folders": [
+        {
+            "icon": "1008",
+            "parent_uuid": "",
+            "title": "Business",
+            "updated_at": 1527696441,
+            "uuid": "f7a59f9c-c7c5-409f-8e3b-3ce4ea57519a"
+        },
+        ... more folders
+    ]
+    "items": [
+        {
+            "archived": 0,
+            "auto_submit": 1,
+            "category": "misc",
+            "createdAt": 1527696211,
+            "favorite": 0,
+            "fields": [
+                {
+                    "deleted": 0,
+                    "label": "Access number",
+                    "order": 1,
+                    "sensitive": 0,
+                    "type": "numeric",
+                    "uid": 0,
+                    "updated_at": 1527696211,
+                    "value": "",
+                    "value_updated_at": 1527696211
+                },
+                {
+                    "deleted": 0,
+                    "label": "PIN",
+                    "order": 2,
+                    "sensitive": 1,
+                    "type": "pin",
+                    "uid": 1,
+                    "updated_at": 1527696211,
+                    "value": "0000",
+                    "value_updated_at": 1527696211
+                }
+            ],
+            "folders": [
+                "f7a59f9c-c7c5-409f-8e3b-3ce4ea57519a"
+            ],
+            "icon": {
+                "fav": "",
+                "image": {
+                    "file": "misc/calling"
+                },
+                "type": 1,
+                "uuid": ""
+            },
+            "note": "",
+            "subtitle": "",
+            "template_type": "misc.voicemail",
+            "title": "LATAM",
+            "trashed": 0,
+            "updated_at": 1527696294,
+            "uuid": "2d4dc0e9-b0df-4197-9c93-cbf422688520"
+        },
+        ... more items
+    ]
+}
+
 """
 import json
 from db import Database
@@ -52,22 +122,6 @@ def process_field(field: dict) -> tuple:
     return f_name, f_value, f_sensitive
 
 
-# def print_item(item: dict):
-#     """
-#     Print a database item in a human readable form.
-#     Used during debugging
-#     :param item:
-#     :return:
-#     """
-#     for key in item.keys():
-#         value = item[key]
-#         print(f'{key} -> {value} {type(value)}')
-#         if key == 'fields':
-#             for field in value:
-#                 print(f'\t{field}')
-
-
-
 def import_tags(db: Database, folder_list: list):
     """
     Create the tag table from the database folder list.
@@ -93,53 +147,6 @@ def import_fields(db: Database, item_list: list):
             except (ValueError, KeyError):
                 pass
 
-
-# def import_items(db: Database, item_list: list):
-#     """
-#     Import all items into the database. This is where the important data gets processed.
-#     :param db: database
-#     :param item_list: list of items
-#     """
-#     for item in item_list:
-#
-#         # An item should be a dictionary
-#         assert isinstance(item, dict)
-#
-#         # Initialize item data
-#         name = ''
-#         note = ''
-#         time_stamp = ''
-#         folder_list = []
-#         field_list = []
-#
-#         # Loop over all items
-#         for key in item.keys():
-#             value = item[key]
-#             if key == 'title':
-#                 name = trimmed_string(value)
-#             elif key == 'createdAt':
-#                 time_stamp = trimmed_string(str(value))
-#             elif key == 'note':
-#                 note = value
-#             elif key == 'folders':  # list
-#                 for folder in value:
-#                     if db.tag_table.get_name(folder):
-#                         folder_list.append(folder)
-#             elif key == 'fields':  # list
-#                 for field in value:
-#                     try:
-#                         f_name, f_value, f_sensitive = process_field(field)
-#                         f = Field(f_name, f_value, f_sensitive)
-#                         field_list.append(f)
-#                     except ValueError:
-#                         continue
-#
-#         # An item must have at least a name, a time stamp and field list
-#         if name and time_stamp and field_list:
-#             item = Item(name, folder_list, note, int(time_stamp), field_list)
-#             db.add_item(item)
-#         else:
-#             raise ValueError('incomplete item')
 
 def import_items(db: Database, item_list: list):
     """
