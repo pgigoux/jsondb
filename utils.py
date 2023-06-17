@@ -1,9 +1,6 @@
+import string
 import uuid
-
-# Keys used to access the name and unique identifier in the database
-# These keys are shared by items, fields and table elements
-KEY_NAME = 'name'
-KEY_UID = 'uid'
+import time
 
 
 def get_uid() -> str:
@@ -25,15 +22,29 @@ def trimmed_string(value: str) -> str:
 
 def filter_control_characters(value: str) -> str:
     """
-    Filter out the most common control characters from a string
+    Replace control characters from a string with a '<n>' equivalent.
+    Used for debugging.
     :param value:
     :return: filtered value
     """
-    return value.replace('\n', '<n>').replace('\t', '<t>').replace('\r', '<r>')
+    o_str = ''
+    for c in value:
+        if c in string.printable and c not in string.whitespace or c == ' ':
+            o_str += c
+        else:
+            o_str += '<' + str(ord(c)) + '>'
+    return o_str
+
+
+def timestamp() -> str:
+    """
+    Return a string time stamp that can be used in file names
+    :return: time stamp
+    """
+    return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
 
 if __name__ == '__main__':
-    print(get_uid())
-    print('[' + trimmed_string('  text ') + ']')
-    print(filter_control_characters('\ttext\t\n'))
-
+    # print(filter_control_characters('\rabc\t\n'))
+    # print(time_stamp())
+    pass

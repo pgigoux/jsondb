@@ -13,4 +13,4 @@ def test_trimmed_string():
 
 def test_filter_control_characters():
     s = '\t\ttext\n\r'
-    assert filter_control_characters(s) == '<t><t>text<n><r>'
+    assert filter_control_characters(s) == '<9><9>text<10><13>'
