@@ -1,9 +1,11 @@
 import os
+from os.path import exists
 from items import ItemCollection, Item, Field
 from items import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from items import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
-from tables import KEY_NAME, KEY_UID
+from common import KEY_NAME, KEY_UID
 from tables import TagTable, FieldTable
+from utils import timestamp
 import json
 
 # The database is stored on disk as a json dictionary with three keys
@@ -33,8 +35,9 @@ class Database:
         :param uid: item uid
         :return: list of indices
         """
-        return [_ for _ in range(len(self.item_collection)) if
-                self.item_collection[_].name == name or self.item_collection[_].uid == uid]
+        pass
+        # return [_ for _ in range(len(self.item_collection)) if
+        #         self.item_collection[_].name == name or self.item_collection[_].uid == uid]
 
     def add_item(self, item: Item):
         """
@@ -43,7 +46,7 @@ class Database:
         """
         self.item_collection.add(item)
 
-    def remove_item(self, uid: str) -> bool:
+    def remove_item(self, uid: str):
         """
         Remove item from the database
         :param uid: unique identifier
@@ -86,16 +89,18 @@ class Database:
         :return:
         """
         # Construct the database into a single dictionary
-        d = {DB_TAGS_KEY: self.tag_table.to_dict(), DB_FIELDS_KEY: self.field_table.to_dict(), DB_ITEMS_KEY: []}
-        # for item in self.item_collection:
-        #     d[DB_ITEMS_KEY].append(item.to_dict())
-        d[DB_ITEMS_KEY] = self.item_collection.to_dict()
+        d = {DB_TAGS_KEY: self.tag_table.to_dict(),
+             DB_FIELDS_KEY: self.field_table.to_dict(),
+             DB_ITEMS_KEY: self.item_collection.to_dict()}
 
-        # Write the data to disk.
-        # Use a temporary file to prevent data corruptions if there's a problem while writing.
+        # Write the data to a temporary file
         with open(TEMP_FILE, 'w') as f_out:
             json.dump(d, f_out)
         f_out.close()
+
+        # Rename files. The old file is renamed using a time stamp.
+        if exists(self.file_name):
+            os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
     def search(self, item_name='', field_name='', field_value='', tag=''):
