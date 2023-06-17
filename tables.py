@@ -1,4 +1,5 @@
-from utils import get_uid, KEY_NAME, KEY_UID
+from utils import get_uid
+from common import KEY_NAME, KEY_UID
 
 
 # List of standard table keys. Used to exclude keys from the user defined attributes
@@ -19,13 +20,21 @@ class Table:
         self.uid_dict = {}
         self.attr_dict = {}
 
-    def exists(self, name: str) -> bool:
+    def __contains__(self, name):
         """
         Determine whether a name is already in the table
         :param name: element name
         :return: True if it does, False otherwise
         """
         return name in self.name_dict
+
+    # def exists(self, name: str) -> bool:
+    #     """
+    #     Determine whether a name is already in the table
+    #     :param name: element name
+    #     :return: True if it does, False otherwise
+    #     """
+    #     return name in self.name_dict
 
     def add(self, **kwargs):
         """
@@ -171,7 +180,7 @@ if __name__ == '__main__':
     t.rename('one', 'three')
     t.dump()
     print(t.to_dict())
-    print(t.exists('three'), t.exists('five'))
+    # print(t.exists('three'), t.exists('five'))
     print(t.get_attributes('two'))
     print(t.get_attributes('three'))
     t.remove('three')
