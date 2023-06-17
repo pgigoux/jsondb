@@ -70,7 +70,6 @@ subdictionaries. Only a few elements in the items are really relevant.
         ... more items
     ]
 }
-
 """
 import json
 from db import Database
@@ -82,13 +81,12 @@ def process_field(field: dict) -> tuple:
     """
     Process field contents.
     Ignore fields that have no value or that are of no interest
-    Rename some field names
-    Make sure the sensitive flag is set for specific fields
+    Rename some fields and make sure the sensitive flag is set for specific fields
     :param field: field contents
     :return: field name, value and sensitive flag
-    :raise: ValueError if the field contents is not compliant
+    :raise: ValueError if the field contents is empty or of no interest
     """
-    # Extract the field name, value and sensistive flag
+    # Extract the field name, value and sensitive flag
     f_name = trimmed_string(field['label'])
     f_sensitive = True if field['sensitive'] == 1 else False
     f_value = trimmed_string(field['value'])
@@ -186,6 +184,7 @@ def import_items(db: Database, item_list: list):
                         f = Field(f_name, f_value, f_sensitive)
                         field_list.append(f)
                     except ValueError:
+                        # can be safely ignored
                         continue
 
         # An item must have at least a name, a time stamp and field list
@@ -220,15 +219,14 @@ def import_database(input_file_name: str, output_file_name: str):
     import_tags(db, json_data['folders'])
     import_fields(db, json_data['items'])
     import_items(db, json_data['items'])
-    db.dump()
+
+    # Write file to disk
+    db.write()
 
     # Debug
     # db.dump()
     # db.tag_table.dump()
     # db.field_table.dump()
-
-    # Write file to disk
-    db.write()
 
 
 if __name__ == '__main__':
