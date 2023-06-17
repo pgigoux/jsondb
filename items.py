@@ -1,7 +1,8 @@
-import random
+from typing import Generator
 from tables import KEY_NAME, KEY_UID
 from utils import get_uid, filter_control_characters
-from utils import random_bool, random_int, random_string, random_value, random_string_list, random_list_element
+
+# import testing
 
 # Field access keys
 FIELD_NAME_KEY = KEY_NAME
@@ -26,13 +27,24 @@ class Field:
         self.uid = get_uid()
 
     def __str__(self):
+        """
+        :return: string representation of the field
+        """
         return f'{self.name}, {self.value}, {self.sensitive}, {self.uid}'
 
-    def to_dict(self):
-        return {FIELD_NAME_KEY: self.name, FIELD_VALUE_KEY: str(self.value),
-                FIELD_SENSITIVE_KEY: str(self.sensitive), FIELD_UID_KEY: str(self.uid)}
+    def to_dict(self) -> dict:
+        """
+        Convert field into a dictionary
+        :return: dictionary with field elements (name, value, sensitive flag)
+        """
+        return {FIELD_NAME_KEY: self.name, FIELD_VALUE_KEY: self.value,
+                FIELD_SENSITIVE_KEY: self.sensitive, FIELD_UID_KEY: str(self.uid)}
 
     def dump(self, indent=0):
+        """
+        Print the field in a human readable for. Used for debugging
+        :param indent: indentation level for formatting
+        """
         s = '\t' * indent + f'Field: name={self.name}, value={self.value}, sensitive={self.sensitive}, uid={self.uid}'
         print(s)
 
@@ -48,7 +60,11 @@ class Item:
         self.field_list = field_list
 
     def __str__(self):
-        return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {len(self.field_list)}'
+        """
+        :return: string representation of the item
+        """
+        field_list = [str(f) for f in self.field_list]
+        return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {field_list}'
 
     def to_dict(self):
         f_list = []
@@ -74,26 +90,13 @@ class Item:
             field.dump(indent=indent + 1)
 
 
-def random_field() -> Field:
-    return Field(f'field-{random_string()}', random_value(), random_bool())
-
-
-def random_field_list() -> list[Field]:
-    return [random_field() for _ in range(random.randrange(1, 5))]
-
-
-def random_item() -> Item:
-    return Item(random_string('name-'),
-                random_string_list('tag-'),
-                random_string('note-'),
-                random_int(),
-                random_field_list())
-
-
 class ItemCollection:
 
     def __init__(self):
         self.items = {}
+
+    def __contains__(self, uid: str):
+        return uid in self.items
 
     def keys(self) -> list:
         """
@@ -107,9 +110,17 @@ class ItemCollection:
 
     def get(self, uid) -> Item:
         if uid in self.items:
-            del self.items[uid]
+            return self.items[uid]
         else:
             raise KeyError(f'item with uid={uid} does not exist')
+
+    def next(self) -> Generator[Item, None, None]:
+        """
+        Iterate over all items in the collection
+        :return: next item
+        """
+        for item in self.items:
+            yield self.items[item]
 
     def add(self, item: Item):
         """
@@ -122,17 +133,6 @@ class ItemCollection:
         else:
             raise KeyError(f'item with uid {item.uid} already exists')
 
-    def update(self, item: Item):
-        """
-        Update the collection with a new instance of an item
-        :param item: Item to update
-        :raise: KeyError if the item does not exist already
-        """
-        if item.uid in self.items:
-            self.items[item.uid] = Item
-        else:
-            raise KeyError(f'item with uid {item.uid} does not exist')
-
     def remove(self, uid: str):
         """
         Remove item identified by a unique identifier
@@ -144,19 +144,33 @@ class ItemCollection:
         else:
             raise KeyError(f'item with uid={uid} does not exist')
 
-    def to_dict(self):
+    def update(self, item: Item):
+        """
+        Update the collection with a new instance of an item
+        :param item: Item to update
+        :raise: KeyError if the item does not exist already
+        """
+        if item.uid in self.items:
+            self.items[item.uid] = Item
+        else:
+            raise KeyError(f'item with uid {item.uid} does not exist')
+
+    def to_dict(self) -> dict:
+        """
+        Export the item collection as a dictionary
+        :return:
+        """
         d = {}
-        for it in self.items:
-            item = self.items[it]
+        for item_uid in self.items:
+            item = self.items[item_uid]
             assert isinstance(item, Item)
-            d[it] = item.to_dict()
+            d[item_uid] = item.to_dict()
         return d
 
     def dump(self, indent=0):
         """
         Dump collection contents in a human readable form
         :param indent: indentation level
-        :return:
         """
         print('Items:')
         for uid in self.items:
@@ -164,12 +178,4 @@ class ItemCollection:
 
 
 if __name__ == '__main__':
-    ic = ItemCollection()
-    ic.add(random_item())
-    ic.add(random_item())
-    ic.add(random_item())
-    ic.dump()
-    key = random_list_element(ic.keys())
-    print('key', key)
-    ic.remove(key)
-    ic.dump()
+    pass
