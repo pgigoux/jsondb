@@ -81,7 +81,6 @@ class Item:
         print(margin + 'Item')
         print(margin + f'\tname={self.name}, time={self.time_stamp}, uid={self.uid}')
         note = filter_control_characters(self.note)
-        # note = self.note.replace('\n', '-')
         print(margin + f'\tnote={note}')
         print(margin + f'\ttags={self.tags}')
         for field in self.field_list:
