@@ -1,8 +1,6 @@
 from typing import Generator
-from tables import KEY_NAME, KEY_UID
+from common import KEY_NAME, KEY_UID
 from utils import get_uid, filter_control_characters
-
-# import testing
 
 # Field access keys
 FIELD_NAME_KEY = KEY_NAME
