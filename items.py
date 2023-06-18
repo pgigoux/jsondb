@@ -218,7 +218,6 @@ class Item(Element):
         """
         :return: string representation of the item
         """
-        # TODO
         field_list = [str(f) for f in self.fields.next()]
         return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {field_list}'
 
@@ -229,7 +228,19 @@ class Item(Element):
         """
         return self.uid
 
+    def next_field(self) -> Generator[Field, None, None]:
+        """
+        Return the next field in an item
+        :return: next field
+        """
+        for field in self.fields.next():
+            yield field
+
     def to_dict(self):
+        """
+        Export the item as a dictionary
+        :return: dictionary representation
+        """
         return {ITEM_NAME_KEY: self.name,
                 ITEM_TAG_LIST_KEY: self.tags,
                 ITEM_NOTE_KEY: self.note,
@@ -239,6 +250,10 @@ class Item(Element):
                 }
 
     def dump(self, indent=0):
+        """
+        Dump item contents in a human readable form
+        :param indent: indentation level
+        """
         margin = '\t' * indent
         print(margin + 'Item')
         print(margin + f'\tname={self.name}, time={self.time_stamp}, uid={self.uid}')
