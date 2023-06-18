@@ -1,6 +1,7 @@
 import string
 import uuid
 import time
+import re
 
 
 def get_uid() -> str:
@@ -9,6 +10,10 @@ def get_uid() -> str:
     :return:
     """
     return str(uuid.uuid4())
+
+
+def match_strings(s1: str, s2: str):
+    return True if re.search(s1.lower(), s2.lower()) else False
 
 
 def trimmed_string(value: str) -> str:
