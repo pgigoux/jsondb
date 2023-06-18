@@ -73,7 +73,7 @@ subdictionaries. Only a few elements in the items are really relevant.
 """
 import json
 from db import Database
-from items import Item, Field
+from items import FieldCollection, Item, Field
 from utils import trimmed_string
 
 
@@ -162,7 +162,8 @@ def import_items(db: Database, item_list: list):
         note = ''
         time_stamp = ''
         folder_list = []
-        field_list = []
+        # field_list = []
+        field_collection = FieldCollection()
 
         # Loop over all items
         for key in item.keys():
@@ -181,15 +182,14 @@ def import_items(db: Database, item_list: list):
                 for field in value:
                     try:
                         f_name, f_value, f_sensitive = process_field(field)
-                        f = Field(f_name, f_value, f_sensitive)
-                        field_list.append(f)
+                        field_collection.add(Field(f_name, f_value, f_sensitive))
                     except ValueError:
                         # can be safely ignored
                         continue
 
-        # An item must have at least a name, a time stamp and field list
-        if name and time_stamp and field_list:
-            item = Item(name, folder_list, note, time_stamp, field_list)
+        # An item must have at least a name, a time stamp and at least one field
+        if name and time_stamp and field_collection.count() > 0:
+            item = Item(name, folder_list, note, time_stamp, field_collection)
             db.add_item(item)
         else:
             raise ValueError('incomplete item')
