@@ -1,11 +1,11 @@
 import os
 from os.path import exists
-from items import ItemCollection, Item, Field
+from items import ItemCollection, FieldCollection, Item, Field
 from items import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from items import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from common import KEY_NAME, KEY_UID
 from tables import TagTable, FieldTable
-from utils import timestamp
+from utils import match_strings, timestamp
 import json
 
 # The database is stored on disk as a json dictionary with three keys
@@ -27,17 +27,6 @@ class Database:
         self.tag_table = TagTable()
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
-
-    def find_items(self, name='', uid='') -> list:
-        """
-        Return the positions of all items matching a given name or uid
-        :param name: item name
-        :param uid: item uid
-        :return: list of indices
-        """
-        pass
-        # return [_ for _ in range(len(self.item_collection)) if
-        #         self.item_collection[_].name == name or self.item_collection[_].uid == uid]
 
     def add_item(self, item: Item):
         """
@@ -73,14 +62,13 @@ class Database:
             # Read the items
             for item_uid in data[DB_ITEMS_KEY]:
                 item = data[DB_ITEMS_KEY][item_uid]
-                field_list = []
-                for field in item[ITEM_FIELDS_KEY]:
-                    field_list.append(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
-                self.item_collection.add(Item(item[ITEM_NAME_KEY],
-                                              item[ITEM_TAG_LIST_KEY],
-                                              item[ITEM_NOTE_KEY],
-                                              item[ITEM_TIMESTAMP_KEY],
-                                              field_list))
+                fc = FieldCollection()
+                for field_uid in item[ITEM_FIELDS_KEY]:
+                    field = item[ITEM_FIELDS_KEY][field_uid]
+                    fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
+                self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
+                                              item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+
         f_in.close()
 
     def write(self):
@@ -103,8 +91,24 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
-    def search(self, item_name='', field_name='', field_value='', tag=''):
-        pass
+    def search(self, item_name='', field_name='', field_value='', tag='') -> list[Item]:
+        output_list = []
+        for item in self.item_collection.next():
+            assert isinstance(item, Item)
+            if item_name and match_strings(item_name, item.name):
+                output_list.append(item)
+            if field_name:
+                for field in item.next_field():
+                    if match_strings(field_name, field.name):
+                        output_list.append(item)
+            if field_value:
+                for field in item.next_field():
+                    if match_strings(field_value, field.value):
+                        output_list.append(item)
+            if tag:
+                # TODO
+                pass
+        return output_list
 
     def dump(self):
         print('---- Database ----')
@@ -117,4 +121,6 @@ class Database:
 if __name__ == '__main__':
     db = Database('db.json')
     db.read()
-    db.dump()
+    for it in db.search(item_name='fala', field_name='RUT', field_value='rtimp'):
+        it.dump()
+    # db.dump()
