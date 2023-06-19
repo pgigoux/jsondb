@@ -66,3 +66,27 @@ def test_table():
 
     assert tt.get_attributes(name='four') == {'value': 4}
     assert tt.get_attributes(uid='4000') == {'value': 4}
+
+
+def test_tag_table():
+    tt = TagTable()
+    assert isinstance(tt, TagTable)
+
+    tt.add('one', uid='1000')
+    tt.add('two', uid='2000')
+
+    assert tt.to_dict() == [{'name': 'one', 'uid': '1000'}, {'name': 'two', 'uid': '2000'}]
+
+
+def test_field_table():
+    tt = FieldTable()
+    assert isinstance(tt, FieldTable)
+
+    tt.add('one', sensitive=True, uid='1000')
+    tt.add('two', uid='2000')
+
+    assert tt.is_sensitive('one') is True
+    assert tt.is_sensitive('two') is False
+
+    assert tt.to_dict() == [{'name': 'one', 'uid': '1000', 'sensitive': True},
+                            {'name': 'two', 'uid': '2000', 'sensitive': False}]
