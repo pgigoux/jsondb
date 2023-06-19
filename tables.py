@@ -20,7 +20,13 @@ class Table:
         self.uid_dict = {}
         self.attr_dict = {}
 
-    def __contains__(self, name):
+    def count(self):
+        if len(self.name_dict) == len(self.uid_dict):
+            return len(self.name_dict)
+        else:
+            raise ValueError('table is inconistent')
+
+    def has_name(self, name):
         """
         Determine whether a name is already in the table
         :param name: element name
@@ -28,13 +34,13 @@ class Table:
         """
         return name in self.name_dict
 
-    # def exists(self, name: str) -> bool:
-    #     """
-    #     Determine whether a name is already in the table
-    #     :param name: element name
-    #     :return: True if it does, False otherwise
-    #     """
-    #     return name in self.name_dict
+    def has_uid(self, uid):
+        """
+        Determine whether a uid is already in the table
+        :param uid: element uid
+        :return: True if it does, False otherwise
+        """
+        return uid in self.uid_dict
 
     def add(self, **kwargs):
         """
@@ -55,7 +61,7 @@ class Table:
         if not uid:
             uid = get_uid()
 
-        # Enter elements to the table
+        # Enter additional elements to the table
         if name not in self.name_dict:
             self.name_dict[name] = uid
             self.uid_dict[uid] = name
@@ -117,9 +123,17 @@ class Table:
         else:
             raise KeyError(f'uid {uid} not found in table')
 
-    def get_attributes(self, name: str) -> dict:
-        if name in self.name_dict:
+    def get_attributes(self, name='', uid='') -> dict:
+        """
+        Get the additional attributes for a table entry either by name or uid
+        :param name: name
+        :param uid: unique identifier
+        :return:
+        """
+        if name and name in self.name_dict:
             return self.attr_dict[self.name_dict[name]]
+        elif uid and uid in self.uid_dict:
+            return self.attr_dict[uid]
         else:
             raise KeyError(f'name {name} not found in table')
 
@@ -172,28 +186,26 @@ class FieldTable(Table):
 
 
 if __name__ == '__main__':
-    # test(name='caca')
     t = Table()
-    t.add(name='one', uid=34, sensitive=True, value='hello')
+    t.add(name='one', uid=1, sensitive=True, value='hello')
     t.add(name='two', value=6)
     t.dump()
-    t.rename('one', 'three')
-    t.dump()
-    print(t.to_dict())
-    # print(t.exists('three'), t.exists('five'))
-    print(t.get_attributes('two'))
-    print(t.get_attributes('three'))
-    t.remove('three')
-    t.dump()
+    print(t.get_attributes(name='one'))
+    print(t.get_attributes(name='two'))
+    print(t.get_attributes(uid='1'))
 
-    tg = TagTable()
-    tg.add('abc')
-    tg.add('cdf', uid='1234')
-    tg.dump()
-    tg.get_attributes('abc')
-    tg.rename('abc', 'xyz')
-    tg.dump()
 
-    ft = FieldTable()
-    ft.add('password', uid='6')
-    ft.dump()
+    # t.remove('three')
+    # t.dump()
+
+    # tg = TagTable()
+    # tg.add('abc')
+    # tg.add('cdf', uid='1234')
+    # tg.dump()
+    # tg.get_attributes(name='abc')
+    # tg.rename('abc', 'xyz')
+    # tg.dump()
+    #
+    # ft = FieldTable()
+    # ft.add('password', uid='6')
+    # ft.dump()
