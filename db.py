@@ -1,11 +1,12 @@
 import os
+import re
 from os.path import exists
 from items import ItemCollection, FieldCollection, Item, Field
 from items import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from items import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from common import KEY_NAME, KEY_UID
 from tables import TagTable, FieldTable
-from utils import match_strings, timestamp
+from utils import timestamp
 import json
 
 # The database is stored on disk as a json dictionary with three keys
@@ -45,7 +46,7 @@ class Database:
     def read(self):
         """
         Read the database file from disk
-        :return:
+        raise: FileNotFoundError
         """
         with open(self.file_name, 'r') as f_in:
             # Read the data form the file
@@ -91,23 +92,34 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
-    def search(self, item_name='', field_name='', field_value='', tag='') -> list[Item]:
+    def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
+               tag=False, note=False) -> list[Item]:
+        """
+        :param pattern: pattern to search for
+        :param item_name: search in item name?
+        :param field_name: search in field name?
+        :param field_value: search in field value?
+        :param tag: search in tags?
+        :param note: seach in note?
+        :return: list of items matching the search criteria
+        """
         output_list = []
+        cp = re.compile(pattern, flags=re.IGNORECASE)
         for item in self.item_collection.next():
             assert isinstance(item, Item)
-            if item_name and match_strings(item_name, item.name):
+            if item_name and cp.search(item.name):
                 output_list.append(item)
-            if field_name:
+            if field_name or field_value:
                 for field in item.next_field():
-                    if match_strings(field_name, field.name):
+                    if field_name and cp.search(field.name):
                         output_list.append(item)
-            if field_value:
-                for field in item.next_field():
-                    if match_strings(field_value, field.value):
+                    if field_value and cp.search(field.value):
                         output_list.append(item)
-            if tag:
-                # TODO
-                pass
+            if tag and pattern in item.tags:
+                output_list.append(item)
+            if note and cp.search(item.note):
+                output_list.append(item)
+
         return output_list
 
     def dump(self):
@@ -121,6 +133,9 @@ class Database:
 if __name__ == '__main__':
     db = Database('db.json')
     db.read()
-    for it in db.search(item_name='fala', field_name='RUT', field_value='rtimp'):
-        it.dump()
+    # db.dump()
+    # for it in db.search('fala|rut', field_name=True):
+    #     it.dump()
+    # for it in db.search('547d62c8-eb5f-4175-b053-620638e50042', item_name=False, field_value=False, tag=True):
+    #     it.dump()
     # db.dump()
