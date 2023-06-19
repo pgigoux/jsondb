@@ -135,7 +135,7 @@ class Table:
         elif uid and uid in self.uid_dict:
             return self.attr_dict[uid]
         else:
-            raise KeyError(f'name {name} not found in table')
+            raise KeyError(f'name={name} or uid={uid} not in the table')
 
     def to_dict(self) -> list:
         """
@@ -190,22 +190,17 @@ if __name__ == '__main__':
     t.add(name='one', uid=1, sensitive=True, value='hello')
     t.add(name='two', value=6)
     t.dump()
+
     print(t.get_attributes(name='one'))
     print(t.get_attributes(name='two'))
     print(t.get_attributes(uid='1'))
 
+    tg = TagTable()
+    tg.add('abc')
+    tg.add('cdf', uid='1234')
+    tg.dump()
 
-    # t.remove('three')
-    # t.dump()
-
-    # tg = TagTable()
-    # tg.add('abc')
-    # tg.add('cdf', uid='1234')
-    # tg.dump()
-    # tg.get_attributes(name='abc')
-    # tg.rename('abc', 'xyz')
-    # tg.dump()
-    #
-    # ft = FieldTable()
-    # ft.add('password', uid='6')
-    # ft.dump()
+    ft = FieldTable()
+    ft.add('password', sensitive=True, uid='6')
+    ft.add('url')
+    ft.dump()
