@@ -1,21 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generator
-from common import KEY_NAME, KEY_UID
 from utils import get_uid, filter_control_characters
-
-# Field attribute keys
-FIELD_NAME_KEY = KEY_NAME
-FIELD_VALUE_KEY = 'value'
-FIELD_UID_KEY = KEY_UID
-FIELD_SENSITIVE_KEY = 'sensitive'
-
-# Item attribute keys
-ITEM_NAME_KEY = KEY_NAME
-ITEM_TAG_LIST_KEY = 'tags'
-ITEM_NOTE_KEY = 'note'
-ITEM_TIMESTAMP_KEY = 'timestamp'
-ITEM_UID_KEY = KEY_UID
-ITEM_FIELDS_KEY = 'fields'
+from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
+from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
 
 
 class Element(ABC):

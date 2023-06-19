@@ -1,13 +1,13 @@
 import os
 import re
+import json
 from os.path import exists
 from items import ItemCollection, FieldCollection, Item, Field
-from items import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
-from items import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from common import KEY_NAME, KEY_UID
+from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
+from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from tables import TagTable, FieldTable
 from utils import timestamp
-import json
 
 # The database is stored on disk as a json dictionary with three keys
 DB_TAGS_KEY = 'tags'
