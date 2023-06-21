@@ -54,19 +54,19 @@ class Collection:
     def __contains__(self, key: str):
         return key in self.data
 
+    def __len__(self) -> int:
+        """
+        Return the number of items in the collection
+        :return: number of items
+        """
+        return len(self.data)
+
     def keys(self) -> list:
         """
         Return the list unique identifiers for the items in the collection
         :return:
         """
         return list(self.data.keys())
-
-    def count(self) -> int:
-        """
-        Return the number of items in the collection
-        :return: number of items
-        """
-        return len(self.data)
 
     def get(self, key) -> Element:
         """

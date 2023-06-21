@@ -36,7 +36,7 @@ def test_add_field():
     fc.add(random_field())
     fc.add(random_field())
     fc.add(random_field())
-    assert fc.count() == 3
+    assert len(fc) == 3
     for key in fc.keys():
         assert key in fc
 
@@ -71,7 +71,7 @@ def test_remove_field():
     fc.add(random_field())
     key = random_list_element(fc.keys())
     fc.remove(key)
-    assert fc.count() == 2
+    assert len(fc) == 2
     assert key not in fc
 
 

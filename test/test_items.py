@@ -14,7 +14,7 @@ def test_add_item():
     ic.add(random_item())
     ic.add(random_item())
     ic.add(random_item())
-    assert ic.count() == 3
+    assert len(ic) == 3
     for key in ic.keys():
         assert key in ic
 
@@ -49,7 +49,7 @@ def test_remove_item():
     ic.add(random_item())
     key = random_list_element(ic.keys())
     ic.remove(key)
-    assert ic.count() == 2
+    assert len(ic) == 2
     assert key not in ic
 
 
