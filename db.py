@@ -123,8 +123,7 @@ class Database:
         return output_list
 
     def dump(self):
-        print('---- Database ----')
-        print(f'file_name={self.file_name}')
+        print(f'-- Database {self.file_name}')
         self.tag_table.dump()
         self.field_table.dump()
         self.item_collection.dump()
@@ -133,7 +132,7 @@ class Database:
 if __name__ == '__main__':
     db = Database('db.json')
     db.read()
-    # db.dump()
+    db.dump()
     # for it in db.search('fala|rut', field_name=True):
     #     it.dump()
     # for it in db.search('547d62c8-eb5f-4175-b053-620638e50042', item_name=False, field_value=False, tag=True):
