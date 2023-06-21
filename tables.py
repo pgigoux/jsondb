@@ -1,7 +1,6 @@
 from utils import get_uid
 from common import KEY_NAME, KEY_UID, FIELD_SENSITIVE_KEY
 
-
 # List of standard table keys. Used to exclude keys from the user defined attributes
 TABLE_KEY_LIST = [KEY_NAME, KEY_UID]
 
@@ -20,11 +19,8 @@ class Table:
         self.uid_dict = {}
         self.attr_dict = {}
 
-    def count(self):
-        if len(self.name_dict) == len(self.uid_dict):
-            return len(self.name_dict)
-        else:
-            raise ValueError('table is inconistent')
+    def __len__(self):
+        return len(self.name_dict)
 
     def has_name(self, name):
         """
@@ -187,25 +183,24 @@ class FieldTable(Table):
     def is_sensitive(self, name: str):
         return self.get_attributes(name=name)[FIELD_SENSITIVE_KEY]
 
+    if __name__ == '__main__':
+        t = Table()
+        t.add(name='one', uid=1, sensitive=True, value='hello')
+        t.add(name='two', value=6)
+        t.dump()
 
-if __name__ == '__main__':
-    t = Table()
-    t.add(name='one', uid=1, sensitive=True, value='hello')
-    t.add(name='two', value=6)
-    t.dump()
+        print(t.get_attributes(name='one'))
+        print(t.get_attributes(name='two'))
+        print(t.get_attributes(uid='1'))
 
-    print(t.get_attributes(name='one'))
-    print(t.get_attributes(name='two'))
-    print(t.get_attributes(uid='1'))
+        tg = TagTable()
+        tg.add('abc')
+        tg.add('cdf', uid='1234')
+        tg.dump()
 
-    tg = TagTable()
-    tg.add('abc')
-    tg.add('cdf', uid='1234')
-    tg.dump()
-
-    ft = FieldTable()
-    ft.add('password', sensitive=True, uid='6')
-    ft.add('url')
-    print('sensitive', ft.is_sensitive('password'))
-    print(ft.to_dict())
-    ft.dump()
+        ft = FieldTable()
+        ft.add('password', sensitive=True, uid='6')
+        ft.add('url')
+        print('sensitive', ft.is_sensitive('password'))
+        print(ft.to_dict())
+        ft.dump()

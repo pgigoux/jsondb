@@ -13,8 +13,8 @@ def test_table():
     tt.add(name='three', uid='3000')
     tt.add(name='four', uid='4000', value=4)
 
-    # Test count
-    assert tt.count() == 4
+    # Test number of elements
+    assert len(tt) == 4
 
     # Add duplicates
     with pytest.raises(KeyError):
@@ -40,7 +40,7 @@ def test_table():
 
     # Remove existent element
     tt.remove(uid='2000')
-    assert tt.count() == 3
+    assert len(tt) == 3
     assert tt.has_uid('2000') is False
     assert tt.has_name('two') is False
     assert tt.has_name('one') is True
