@@ -10,7 +10,7 @@ def test_table():
     # Add elements
     tt.add(name='one')
     tt.add(name='two', uid='2000')
-    tt.add(name='three', uid='3000')
+    tt.add(name='three', uid='3000', value=3)
     tt.add(name='four', uid='4000', value=4)
 
     # Test number of elements
@@ -26,7 +26,7 @@ def test_table():
     assert tt.has_name('two') is True
     assert tt.has_name('three') is True
     assert tt.has_name('four') is True
-    assert tt.has_name('ten') is False
+    assert tt.has_name('five') is False
     assert tt.has_uid('2000') is True
     assert tt.has_uid('3000') is True
     assert tt.has_uid('4000') is True
@@ -39,7 +39,7 @@ def test_table():
     assert tt.get_uid('three') == '3000'
 
     # Remove existent element
-    tt.remove(uid='2000')
+    tt.remove('2000')
     assert len(tt) == 3
     assert tt.has_uid('2000') is False
     assert tt.has_name('two') is False
@@ -51,8 +51,8 @@ def test_table():
 
     # Remove non existent elements
     with pytest.raises(KeyError):
-        tt.remove(name='five')
-        tt.remove(uid='5000')
+        tt.remove('0000')
+        tt.remove('5000')
 
     # Rename existent element
     tt.rename('three', 'zero')
@@ -64,8 +64,19 @@ def test_table():
     with pytest.raises(KeyError):
         tt.rename('five', 'six')
 
-    assert tt.get_attributes(name='four') == {'value': 4}
-    assert tt.get_attributes(uid='4000') == {'value': 4}
+    # Attributes
+    assert tt.get_attributes('3000') == {'value': 3}
+    assert tt.get_attributes('4000') == {'value': 4}
+
+    # Counters
+    tt.increment('3000', 3)
+    assert tt.count('3000') == 3
+    tt.increment('3000')
+    assert tt.count('3000') == 4
+
+    with pytest.raises(KeyError):
+        tt.increment('2000')
+        _ = tt.count('2000')
 
 
 def test_tag_table():
@@ -85,8 +96,8 @@ def test_field_table():
     tt.add('one', sensitive=True, uid='1000')
     tt.add('two', uid='2000')
 
-    assert tt.is_sensitive('one') is True
-    assert tt.is_sensitive('two') is False
+    assert tt.is_sensitive('1000') is True
+    assert tt.is_sensitive('2000') is False
 
     assert tt.to_dict() == [{'name': 'one', 'uid': '1000', 'sensitive': True},
                             {'name': 'two', 'uid': '2000', 'sensitive': False}]

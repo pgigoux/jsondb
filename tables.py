@@ -9,13 +9,17 @@ class Table:
 
     def __init__(self, table_name=''):
         """
-        The table information is stored in dictionaries to speed access time.
-        name_dict provides the mapping between names and their unique identifiers (indexed by unique identifier)
-        uid_dict provides the mapping between unique identifiers and names (indexed by name)
-        attr_dict is used to store attributes other than the name (indexed by unique identifier)
+        The table class is used to provide a mapping between names and unique identifiers.
+        I can also store additional attributes and also a counter for each unique identifier.
+        The table information is stored in four dictionaries:
+        name_dict: provides the unique identifier for a given name (indexed by name)
+        uid_dict: provides the name for a given unique identifier (indexed by unique identifier)
+        count_dict: keeps track how many elements of each type are present (indexed by unique identifier)
+        attr_dict: Stores additional attributes other than the name and count (indexed by unique identifier)
         """
         self.table_name = table_name
         self.name_dict = {}
+        self.count_dict = {}
         self.uid_dict = {}
         self.attr_dict = {}
 
@@ -50,37 +54,36 @@ class Table:
         else:
             raise KeyError('no name specified')
 
-        # The unique identifier is optional. Assign default if not present.
+        # The unique identifier is optional. Generate one if not present.
         uid = ''
         if KEY_UID in kwargs:
             uid = str(kwargs[KEY_UID])
         if not uid:
             uid = get_uid()
 
-        # Enter additional elements to the table
+        # Enter elements to the table
         if name not in self.name_dict:
             self.name_dict[name] = uid
             self.uid_dict[uid] = name
+            self.count_dict[uid] = 0
             self.attr_dict[uid] = {x: kwargs[x] for x in kwargs if x not in TABLE_KEY_LIST}
         else:
             raise KeyError(f'{name} already exists')
 
-    def remove(self, name='', uid=''):
+    def remove(self, uid):
         """
-        Remove by name or unique identifier
-        :param name:
-        :param uid:
-        :raise: KeyError if the name is not found
+        Remove item from the table
+        :param uid: unique identifier
+        :raise: KeyError if the uid is not found
         """
-        if name:
-            uid = self.name_dict[name]
-        elif uid:
+        if uid in self.uid_dict:
             name = self.uid_dict[uid]
+            del (self.name_dict[name])
+            del (self.uid_dict[uid])
+            del (self.count_dict[uid])
+            del (self.attr_dict[uid])
         else:
-            raise ValueError('must specify the name or the uid')
-        del (self.name_dict[name])
-        del (self.uid_dict[uid])
-        del (self.attr_dict[uid])
+            raise KeyError(f'{uid} not in the table')
 
     def rename(self, old_name: str, new_name: str):
         """
@@ -93,7 +96,24 @@ class Table:
             self.name_dict[new_name] = self.name_dict[old_name]
             del (self.name_dict[old_name])
         else:
-            raise KeyError('name not found')
+            raise KeyError(f'{old_name} not in the table')
+
+    def count(self, uid: str):
+        if uid in self.uid_dict:
+            return self.count_dict[uid]
+        else:
+            raise KeyError(f'uid {uid} not in the table')
+
+    def increment(self, uid: str, n=1):
+        """
+        Increment the counter
+        :param uid: unique identifier
+        :param n: counter increment
+        """
+        if uid in self.uid_dict:
+            self.count_dict[uid] += n
+        else:
+            raise KeyError(f'uid {uid} not in the table')
 
     def get_uid(self, name: str) -> str:
         """
@@ -105,7 +125,7 @@ class Table:
         if name in self.name_dict:
             return self.name_dict[name]
         else:
-            raise KeyError(f'name {name} not found')
+            raise KeyError(f'name {name} not in the table')
 
     def get_name(self, uid: str) -> str:
         """
@@ -117,21 +137,32 @@ class Table:
         if uid in self.uid_dict:
             return self.uid_dict[uid]
         else:
-            raise KeyError(f'uid {uid} not found in table')
+            raise KeyError(f'uid {uid} not in table')
 
-    def get_attributes(self, name='', uid='') -> dict:
+    # def get_attributes(self, name='', uid='') -> dict:
+    #     """
+    #     Get the additional attributes for a table entry either by name or uid
+    #     :param name: name
+    #     :param uid: unique identifier
+    #     :raise: KeyError
+    #     """
+    #     if name and name in self.name_dict:
+    #         return self.attr_dict[self.name_dict[name]]
+    #     elif uid and uid in self.uid_dict:
+    #         return self.attr_dict[uid]
+    #     else:
+    #         raise KeyError(f'name={name} or uid={uid} not in the table')
+
+    def get_attributes(self, uid) -> dict:
         """
         Get the additional attributes for a table entry either by name or uid
-        :param name: name
         :param uid: unique identifier
-        :return:
+        :raise: KeyError
         """
-        if name and name in self.name_dict:
-            return self.attr_dict[self.name_dict[name]]
-        elif uid and uid in self.uid_dict:
+        if uid and uid in self.uid_dict:
             return self.attr_dict[uid]
         else:
-            raise KeyError(f'name={name} or uid={uid} not in the table')
+            raise KeyError(f'uid={uid} not in the table')
 
     def to_dict(self) -> list:
         """
@@ -180,8 +211,8 @@ class FieldTable(Table):
     def add(self, name: str, sensitive=False, uid=''):
         super().add(name=name, uid=uid, sensitive=sensitive)
 
-    def is_sensitive(self, name: str):
-        return self.get_attributes(name=name)[FIELD_SENSITIVE_KEY]
+    def is_sensitive(self, uid: str):
+        return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
 
 
 if __name__ == '__main__':
@@ -190,9 +221,9 @@ if __name__ == '__main__':
     t.add(name='two', value=6)
     t.dump()
 
-    print(t.get_attributes(name='one'))
-    print(t.get_attributes(name='two'))
-    print(t.get_attributes(uid='1'))
+    print('-'* 10)
+    print(t.get_attributes('1'))
+    print(t.get_attributes(t.get_uid('two')))
 
     tg = TagTable()
     tg.add('abc')
@@ -202,6 +233,6 @@ if __name__ == '__main__':
     ft = FieldTable()
     ft.add('password', sensitive=True, uid='6')
     ft.add('url')
-    print('sensitive', ft.is_sensitive('password'))
+    print('sensitive', ft.is_sensitive('6'))
     print(ft.to_dict())
     ft.dump()
