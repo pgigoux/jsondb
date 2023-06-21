@@ -64,6 +64,15 @@ def test_table():
     with pytest.raises(KeyError):
         tt.rename('five', 'six')
 
+    # Rename to existent element
+    with pytest.raises(KeyError):
+        tt.rename('one', 'four')
+        tt.rename('one', 'zero')
+        tt.rename('zero', 'one')
+        tt.rename('zero', 'four')
+        tt.rename('four', 'one')
+        tt.rename('four', 'zero')
+
     # Attributes
     assert tt.get_attributes('3000') == {'value': 3}
     assert tt.get_attributes('4000') == {'value': 4}

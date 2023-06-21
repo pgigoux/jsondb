@@ -117,8 +117,11 @@ class Table:
         :return:
         """
         if old_name in self.name_dict:
-            self.name_dict[new_name] = self.name_dict[old_name]
-            del (self.name_dict[old_name])
+            if new_name not in self.name_dict:
+                self.name_dict[new_name] = self.name_dict[old_name]
+                del (self.name_dict[old_name])
+            else:
+                raise KeyError(f'{new_name} already exists in table')
         else:
             raise KeyError(f'{old_name} not in the table')
 
