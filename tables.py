@@ -9,9 +9,9 @@ class Table:
 
     def __init__(self, table_name=''):
         """
-        The table information is stored in three dictionaries
-        name_dict provides the mapping between names and their unique identifiers
-        uid_dict provides the mapping between unique identifiers and names
+        The table information is stored in dictionaries to speed access time.
+        name_dict provides the mapping between names and their unique identifiers (indexed by unique identifier)
+        uid_dict provides the mapping between unique identifiers and names (indexed by name)
         attr_dict is used to store attributes other than the name (indexed by unique identifier)
         """
         self.table_name = table_name
@@ -183,24 +183,25 @@ class FieldTable(Table):
     def is_sensitive(self, name: str):
         return self.get_attributes(name=name)[FIELD_SENSITIVE_KEY]
 
-    if __name__ == '__main__':
-        t = Table()
-        t.add(name='one', uid=1, sensitive=True, value='hello')
-        t.add(name='two', value=6)
-        t.dump()
 
-        print(t.get_attributes(name='one'))
-        print(t.get_attributes(name='two'))
-        print(t.get_attributes(uid='1'))
+if __name__ == '__main__':
+    t = Table()
+    t.add(name='one', uid=1, sensitive=True, value='hello')
+    t.add(name='two', value=6)
+    t.dump()
 
-        tg = TagTable()
-        tg.add('abc')
-        tg.add('cdf', uid='1234')
-        tg.dump()
+    print(t.get_attributes(name='one'))
+    print(t.get_attributes(name='two'))
+    print(t.get_attributes(uid='1'))
 
-        ft = FieldTable()
-        ft.add('password', sensitive=True, uid='6')
-        ft.add('url')
-        print('sensitive', ft.is_sensitive('password'))
-        print(ft.to_dict())
-        ft.dump()
+    tg = TagTable()
+    tg.add('abc')
+    tg.add('cdf', uid='1234')
+    tg.dump()
+
+    ft = FieldTable()
+    ft.add('password', sensitive=True, uid='6')
+    ft.add('url')
+    print('sensitive', ft.is_sensitive('password'))
+    print(ft.to_dict())
+    ft.dump()
