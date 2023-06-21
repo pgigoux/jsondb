@@ -188,7 +188,7 @@ def import_items(db: Database, item_list: list):
                         continue
 
         # An item must have at least a name, a time stamp and at least one field
-        if name and time_stamp and field_collection.count() > 0:
+        if name and time_stamp and len(field_collection) > 0:
             item = Item(name, folder_list, note, time_stamp, field_collection)
             db.add_item(item)
         else:
