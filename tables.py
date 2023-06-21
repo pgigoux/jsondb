@@ -42,6 +42,30 @@ class Table:
         """
         return uid in self.uid_dict
 
+    def get_uid(self, name: str) -> str:
+        """
+        Get the unique identifier from the name
+        :param name: tag name
+        :return: unique identifier
+        :raise: IndexError if the tag does not exists
+        """
+        if name in self.name_dict:
+            return self.name_dict[name]
+        else:
+            raise KeyError(f'name {name} not in the table')
+
+    def get_name(self, uid: str) -> str:
+        """
+        Get the name from the unique identifier
+        :param uid: unique identifier
+        :return: element name
+        :raise: KeyError if the tag does not exists
+        """
+        if uid in self.uid_dict:
+            return self.uid_dict[uid]
+        else:
+            raise KeyError(f'uid {uid} not in table')
+
     def add(self, **kwargs):
         """
         Add a new element to the table.
@@ -114,30 +138,6 @@ class Table:
             self.count_dict[uid] += n
         else:
             raise KeyError(f'uid {uid} not in the table')
-
-    def get_uid(self, name: str) -> str:
-        """
-        Get the unique identifier from the name
-        :param name: tag name
-        :return: unique identifier
-        :raise: IndexError if the tag does not exists
-        """
-        if name in self.name_dict:
-            return self.name_dict[name]
-        else:
-            raise KeyError(f'name {name} not in the table')
-
-    def get_name(self, uid: str) -> str:
-        """
-        Get the name from the unique identifier
-        :param uid: unique identifier
-        :return: element name
-        :raise: KeyError if the tag does not exists
-        """
-        if uid in self.uid_dict:
-            return self.uid_dict[uid]
-        else:
-            raise KeyError(f'uid {uid} not in table')
 
     # def get_attributes(self, name='', uid='') -> dict:
     #     """
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     t.add(name='two', value=6)
     t.dump()
 
-    print('-'* 10)
+    print('-' * 10)
     print(t.get_attributes('1'))
     print(t.get_attributes(t.get_uid('two')))
 
