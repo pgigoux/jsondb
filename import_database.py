@@ -76,7 +76,7 @@ import json
 import argparse
 from db import Database
 from items import FieldCollection, Item, Field
-from utils import trimmed_string
+from utils import trimmed_string, get_password
 
 
 def process_field(field: dict) -> tuple:
@@ -197,25 +197,21 @@ def import_items(db: Database, item_list: list):
             raise ValueError('incomplete item')
 
 
-def import_database(input_file_name: str, output_file_name: str, dump_database=False):
+def import_database(input_file_name: str, output_file_name: str, password: str, dump_database=False):
     """
     Import database and write output database
     :param input_file_name: database to import
     :param output_file_name: output database
+    :param dump_database: print imported database to the standard output
     """
-    try:
-        f = open(input_file_name, 'r')
-    except [FileNotFoundError, IOError]:
-        print('file not found')
-        return
-
-    json_data = json.load(f)
+    with open(input_file_name, 'r') as f:
+        json_data = json.load(f)
     f.close()
 
     assert isinstance(json_data, dict)
 
     # Create the database
-    db = Database(output_file_name)
+    db = Database(output_file_name, password)
 
     # Process the different sections
     import_tags(db, json_data['folders'])
@@ -231,9 +227,18 @@ def import_database(input_file_name: str, output_file_name: str, dump_database=F
 
 
 if __name__ == '__main__':
+    # Define command line arguments
     parser = argparse.ArgumentParser(description='Import Enpass database')
     parser.add_argument('input_file', type=str, help='Input file name in JSON format')
     parser.add_argument('output_file', type=str, help='Output database file')
     parser.add_argument('-d', dest='dump', action='store_true', help='Dump output database')
     args = parser.parse_args()
-    import_database(args.input_file, args.output_file, dump_database=args.dump)
+
+    # Get the password to encrypt the output database
+    password = get_password()
+
+    # Import the data
+    try:
+        import_database(args.input_file, args.output_file, password, dump_database=args.dump)
+    except Exception as e:
+        print(f'Error while importing file {e}')
