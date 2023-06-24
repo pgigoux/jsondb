@@ -77,6 +77,7 @@ import argparse
 from db import Database
 from items import FieldCollection, Item, Field
 from utils import trimmed_string, get_password
+from common import DEFAULT_DATABASE_NAME
 
 
 def process_field(field: dict) -> tuple:
@@ -227,18 +228,33 @@ def import_database(input_file_name: str, output_file_name: str, password: str, 
 
 
 if __name__ == '__main__':
-    # Define command line arguments
+    # Command line arguments
     parser = argparse.ArgumentParser(description='Import Enpass database')
-    parser.add_argument('input_file', type=str, help='Input file name in JSON format')
-    parser.add_argument('output_file', type=str, help='Output database file')
-    parser.add_argument('-d', dest='dump', action='store_true', help='Dump output database')
+
+    parser.add_argument('input_file',
+                        action='store',
+                        type=str,
+                        help='Input file name in JSON format')
+
+    parser.add_argument('-o', '--output',
+                        dest='output_file',
+                        action='store',
+                        type=str,
+                        default=DEFAULT_DATABASE_NAME,
+                        help='Output database file')
+
+    parser.add_argument('-d',
+                        dest='dump',
+                        action='store_true',
+                        help='Print output database to stdout')
+
     args = parser.parse_args()
 
     # Get the password to encrypt the output database
-    password = get_password()
+    input_password = get_password()
 
     # Import the data
     try:
-        import_database(args.input_file, args.output_file, password, dump_database=args.dump)
+        import_database(args.input_file, args.output_file, input_password, dump_database=args.dump)
     except Exception as e:
         print(f'Error while importing file {e}')
