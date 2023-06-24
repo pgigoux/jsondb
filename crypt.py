@@ -1,5 +1,4 @@
 import base64
-import os
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
@@ -18,11 +17,12 @@ class Crypt:
     def generate_crypt_key(password: str) -> Fernet:
         """
         Generate a Fernet key from a string password
+        The salt should be fixed to encrypt/decrypt consistently
         :param password: password
         :return: key
         """
         password_bytes = password.encode('utf-8')
-        salt = os.urandom(16)
+        salt = b'TDkmQ2TyV6HRw7pW'
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA512(),
             length=32,
@@ -31,19 +31,19 @@ class Crypt:
         )
         return Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(password_bytes))))
 
-    def encrypt(self, message: str) -> bytes:
+    def encrypt(self, data: str) -> bytes:
         """
-        Encode message using the generated key
-        :param message: message to encode
-        :return: encoded message
+        Encrypt message using the generated key
+        :param data: data to encrypt
+        :return: encrypted message
         """
-        return self.key.encrypt(message.encode('utf-8'))
+        return self.key.encrypt(data.encode('utf-8'))
 
     def decrypt(self, data: bytes) -> str:
         """
-        Decode data using the generated key
-        :param data:
-        :return:
+        Decrypt data using the generated key
+        :param data: data to decrypt
+        :return: decrypted data
         """
         return self.key.decrypt(data).decode('utf-8')
 
