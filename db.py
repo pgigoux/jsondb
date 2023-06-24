@@ -6,6 +6,7 @@ from items import ItemCollection, FieldCollection, Item, Field
 from common import KEY_NAME, KEY_UID
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
+from common import DEFAULT_DATABASE_NAME
 from tables import TagTable, FieldTable
 from utils import timestamp
 from crypt import Crypt
@@ -15,8 +16,6 @@ DB_TAGS_KEY = 'tags'
 DB_FIELDS_KEY = 'fields'
 DB_ITEMS_KEY = 'items'
 
-# Database name
-DATABASE_NAME = 'pw.db'
 
 # Temporary file used when saving data
 TEMP_FILE = 'db.tmp'
@@ -24,12 +23,32 @@ TEMP_FILE = 'db.tmp'
 
 class Database:
 
-    def __init__(self, file_name, password: str):
+    def __init__(self, file_name, password=''):
+        """
+        :param file_name: database file name
+        :param password: password for data encryption (optional)
+        """
         self.file_name = file_name
         self.tag_table = TagTable()
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
-        self.crypt = Crypt(password)
+        # The database will be encrypted if a password is supplied
+        self.encrypt_flag = True if password else False
+        self.key = Crypt(password) if self.encrypt_flag else None
+
+    def read_mode(self) -> str:
+        """
+        Return the file write mode depending on whether encryption is enabled
+        :return: write mode
+        """
+        return 'rb' if self.encrypt_flag else 'r'
+
+    def write_mode(self) -> str:
+        """
+        Return the file write mode depending on whether encryption is enabled
+        :return: write mode
+        """
+        return 'wb' if self.encrypt_flag else 'w'
 
     def add_item(self, item: Item):
         """
@@ -45,44 +64,65 @@ class Database:
         """
         self.item_collection.remove(uid)
 
+    # def read(self):
+    #     """
+    #     Read the database file from disk
+    #     raise: FileNotFoundError
+    #     """
+    #     with open(self.file_name, 'r') as f_in:
+    #         # Read the data form the file
+    #         data = json.loads(f_in.read())
+    #
+    #         # Read the tag table
+    #         for tag in data[DB_TAGS_KEY]:
+    #             self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
+    #
+    #         # Read the field table
+    #         for field in data[DB_FIELDS_KEY]:
+    #             self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
+    #
+    #         # Read the items
+    #         for item_uid in data[DB_ITEMS_KEY]:
+    #             item = data[DB_ITEMS_KEY][item_uid]
+    #             fc = FieldCollection()
+    #             for field_uid in item[ITEM_FIELDS_KEY]:
+    #                 field = item[ITEM_FIELDS_KEY][field_uid]
+    #                 fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
+    #             self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
+    #                                           item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+    #
+    #     f_in.close()
+    #
+    # def write(self):
+    #     """
+    #     Write the database file to disk
+    #     :return:
+    #     """
+    #     # Construct the database into a single dictionary
+    #     d = {DB_TAGS_KEY: self.tag_table.to_dict(),
+    #          DB_FIELDS_KEY: self.field_table.to_dict(),
+    #          DB_ITEMS_KEY: self.item_collection.to_dict()}
+    #
+    #     # Write the data to a temporary file
+    #     with open(TEMP_FILE, 'w') as f_out:
+    #         json.dump(d, f_out)
+    #     f_out.close()
+    #
+    #     # Rename files. The old file is renamed using a time stamp.
+    #     if exists(self.file_name):
+    #         os.rename(self.file_name, self.file_name + '-' + timestamp())
+    #     os.rename(TEMP_FILE, self.file_name)
+
     def read(self):
         """
         Read the database file from disk
-        raise: FileNotFoundError
         """
-        with open(self.file_name, 'r') as f_in:
-            # Read the data form the file
-            data = json.loads(f_in.read())
-
-            # Read the tag table
-            for tag in data[DB_TAGS_KEY]:
-                self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
-
-            # Read the field table
-            for field in data[DB_FIELDS_KEY]:
-                self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
-
-            # Read the items
-            for item_uid in data[DB_ITEMS_KEY]:
-                item = data[DB_ITEMS_KEY][item_uid]
-                fc = FieldCollection()
-                for field_uid in item[ITEM_FIELDS_KEY]:
-                    field = item[ITEM_FIELDS_KEY][field_uid]
-                    fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
-                self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
-                                              item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
-
-        f_in.close()
-
-    def read_decode(self):
-        """
-        Read the database file from disk
-        raise: FileNotFoundError
-        """
-        with open(self.file_name, 'rb') as f_in:
-
-            # Read the data form the file
-            json_data = json.loads(self.crypt.decrypt(f_in.read()))
+        with open(self.file_name, self.read_mode()) as f_in:
+            data = f_in.read()
+            if self.encrypt_flag:
+                assert isinstance(data, bytes)
+                data = self.key.decrypt(data)
+            json_data = json.loads(data)
 
             # Read the tag table
             for tag in json_data[DB_TAGS_KEY]:
@@ -107,33 +147,14 @@ class Database:
     def write(self):
         """
         Write the database file to disk
-        :return:
         """
-        # Construct the database into a single dictionary
-        d = {DB_TAGS_KEY: self.tag_table.to_dict(),
-             DB_FIELDS_KEY: self.field_table.to_dict(),
-             DB_ITEMS_KEY: self.item_collection.to_dict()}
-
-        # Write the data to a temporary file
-        with open(TEMP_FILE, 'w') as f_out:
-            json.dump(d, f_out)
-        f_out.close()
-
-        # Rename files. The old file is renamed using a time stamp.
-        if exists(self.file_name):
-            os.rename(self.file_name, self.file_name + '-' + timestamp())
-        os.rename(TEMP_FILE, self.file_name)
-
-    def write_encode(self):
-        """
-        Write the database file to disk
-        """
-        # Convert the database into json
+        # Convert the database into json and encrypt if selected
         json_data = json.dumps(self.to_dict())
+        data = self.key.encrypt(json_data) if self.encrypt_flag else json_data
 
         # Write the data to a temporary file first
-        with open(TEMP_FILE, 'wb') as f_out:
-            f_out.write(self.crypt.encrypt(json_data))
+        with open(TEMP_FILE, self.write_mode()) as f_out:
+            f_out.write(data)
         f_out.close()
 
         # Rename files. The old file is renamed using a time stamp.
@@ -196,7 +217,7 @@ class Database:
 
 
 if __name__ == '__main__':
-    # db = Database('db.json', 'test_password')
-    # db.read()
-    # db.dump()
+    db = Database(DEFAULT_DATABASE_NAME, 'test')
+    db.read()
+    db.dump()
     pass
