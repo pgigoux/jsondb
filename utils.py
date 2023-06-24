@@ -1,7 +1,12 @@
+import os
+import base64
 import string
 import uuid
 import time
 import re
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.fernet import Fernet
 
 
 def get_uid() -> str:
@@ -43,13 +48,11 @@ def filter_control_characters(value: str) -> str:
 
 def timestamp() -> str:
     """
-    Return a string time stamp that can be used in file names
+    Return a string time stamp up to the second.
     :return: time stamp
     """
     return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
 
 if __name__ == '__main__':
-    # print(filter_control_characters('\rabc\t\n'))
-    # print(time_stamp())
     pass
