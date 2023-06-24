@@ -19,3 +19,6 @@ ITEM_NOTE_KEY = 'note'
 ITEM_TIMESTAMP_KEY = 'timestamp'
 ITEM_UID_KEY = KEY_UID
 ITEM_FIELDS_KEY = 'fields'
+
+# Default database name
+DEFAULT_DATABASE_NAME = 'pw.db'
