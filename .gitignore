@@ -3,4 +3,6 @@
 old
 __pycache__
 *.pyc
-*.json*
+*.json
+*.db
+*2023*
