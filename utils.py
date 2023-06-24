@@ -55,7 +55,7 @@ def get_password():
     Get password from the standard input.
     :return:
     """
-    return getpass.getpass('Password: ')
+    return getpass.getpass('Password: ').strip()
 
 
 if __name__ == '__main__':
