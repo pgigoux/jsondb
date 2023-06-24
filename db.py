@@ -1,7 +1,6 @@
 import os
 import re
 import json
-
 from os.path import exists
 from items import ItemCollection, FieldCollection, Item, Field
 from common import KEY_NAME, KEY_UID
