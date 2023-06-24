@@ -1,6 +1,7 @@
 import os
 import re
 import json
+
 from os.path import exists
 from items import ItemCollection, FieldCollection, Item, Field
 from common import KEY_NAME, KEY_UID
@@ -8,6 +9,7 @@ from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from tables import TagTable, FieldTable
 from utils import timestamp
+from crypt import Crypt
 
 # The database is stored on disk as a json dictionary with three keys
 DB_TAGS_KEY = 'tags'
@@ -23,11 +25,12 @@ TEMP_FILE = 'db.tmp'
 
 class Database:
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, password: str):
         self.file_name = file_name
         self.tag_table = TagTable()
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
+        self.crypt = Crypt(password)
 
     def add_item(self, item: Item):
         """
@@ -92,6 +95,9 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
+    def export(self):
+        pass
+
     def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
                tag=False, note=False) -> list[Item]:
         """
@@ -130,11 +136,6 @@ class Database:
 
 
 if __name__ == '__main__':
-    db = Database('db.json')
+    db = Database('db.json', 'test_password')
     db.read()
     db.dump()
-    # for it in db.search('fala|rut', field_name=True):
-    #     it.dump()
-    # for it in db.search('547d62c8-eb5f-4175-b053-620638e50042', item_name=False, field_value=False, tag=True):
-    #     it.dump()
-    # db.dump()
