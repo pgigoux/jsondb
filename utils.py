@@ -1,12 +1,8 @@
-import os
-import base64
 import string
 import uuid
 import time
 import re
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.fernet import Fernet
+import getpass
 
 
 def get_uid() -> str:
@@ -54,5 +50,14 @@ def timestamp() -> str:
     return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
 
+def get_password():
+    """
+    Get password from the standard input.
+    :return:
+    """
+    return getpass.getpass('Password: ')
+
+
 if __name__ == '__main__':
+    print(get_password())
     pass
