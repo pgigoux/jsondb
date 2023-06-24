@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Program used to import a password database exported from Enpass in json format
 It generates an output database with much less information.
@@ -72,6 +73,7 @@ subdictionaries. Only a few elements in the items are really relevant.
 }
 """
 import json
+import argparse
 from db import Database
 from items import FieldCollection, Item, Field
 from utils import trimmed_string
@@ -195,7 +197,7 @@ def import_items(db: Database, item_list: list):
             raise ValueError('incomplete item')
 
 
-def import_database(input_file_name: str, output_file_name: str):
+def import_database(input_file_name: str, output_file_name: str, dump_database=False):
     """
     Import database and write output database
     :param input_file_name: database to import
@@ -223,11 +225,15 @@ def import_database(input_file_name: str, output_file_name: str):
     # Write file to disk
     db.write()
 
-    # Debug
-    # db.dump()
-    # db.tag_table.dump()
-    # db.field_table.dump()
+    # Dump database
+    if dump_database:
+        db.dump()
 
 
 if __name__ == '__main__':
-    import_database('pdb.json', 'db.json')
+    parser = argparse.ArgumentParser(description='Import Enpass database')
+    parser.add_argument('input_file', type=str, help='Input file name in JSON format')
+    parser.add_argument('output_file', type=str, help='Output database file')
+    parser.add_argument('-d', dest='dump', action='store_true', help='Dump output database')
+    args = parser.parse_args()
+    import_database(args.input_file, args.output_file, dump_database=args.dump)
