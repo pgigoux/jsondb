@@ -74,6 +74,36 @@ class Database:
 
         f_in.close()
 
+    def read_decode(self):
+        """
+        Read the database file from disk
+        raise: FileNotFoundError
+        """
+        with open(self.file_name, 'rb') as f_in:
+
+            # Read the data form the file
+            json_data = json.loads(self.crypt.decrypt(f_in.read()))
+
+            # Read the tag table
+            for tag in json_data[DB_TAGS_KEY]:
+                self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
+
+            # Read the field table
+            for field in json_data[DB_FIELDS_KEY]:
+                self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
+
+            # Read the items
+            for item_uid in json_data[DB_ITEMS_KEY]:
+                item = json_data[DB_ITEMS_KEY][item_uid]
+                fc = FieldCollection()
+                for field_uid in item[ITEM_FIELDS_KEY]:
+                    field = item[ITEM_FIELDS_KEY][field_uid]
+                    fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
+                self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
+                                              item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+
+        f_in.close()
+
     def write(self):
         """
         Write the database file to disk
@@ -94,7 +124,29 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
-    def export(self):
+    def write_encode(self):
+        """
+        Write the database file to disk
+        """
+        # Convert the database into json
+        json_data = json.dumps(self.to_dict())
+
+        # Write the data to a temporary file first
+        with open(TEMP_FILE, 'wb') as f_out:
+            f_out.write(self.crypt.encrypt(json_data))
+        f_out.close()
+
+        # Rename files. The old file is renamed using a time stamp.
+        if exists(self.file_name):
+            os.rename(self.file_name, self.file_name + '-' + timestamp())
+        os.rename(TEMP_FILE, self.file_name)
+
+    def export(self, decrypt_sensitive=False):
+        """
+        Export the database as json
+        :param decrypt_sensitive: write sensitive data in plain text?
+        :return:
+        """
         pass
 
     def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
@@ -105,7 +157,7 @@ class Database:
         :param field_name: search in field name?
         :param field_value: search in field value?
         :param tag: search in tags?
-        :param note: seach in note?
+        :param note: search in note?
         :return: list of items matching the search criteria
         """
         output_list = []
@@ -127,6 +179,15 @@ class Database:
 
         return output_list
 
+    def to_dict(self):
+        """
+        Export the database as a dictionary
+        :return:
+        """
+        return {DB_TAGS_KEY: self.tag_table.to_dict(),
+                DB_FIELDS_KEY: self.field_table.to_dict(),
+                DB_ITEMS_KEY: self.item_collection.to_dict()}
+
     def dump(self):
         print(f'-- Database {self.file_name}')
         self.tag_table.dump()
@@ -135,6 +196,7 @@ class Database:
 
 
 if __name__ == '__main__':
-    db = Database('db.json', 'test_password')
-    db.read()
-    db.dump()
+    # db = Database('db.json', 'test_password')
+    # db.read()
+    # db.dump()
+    pass
