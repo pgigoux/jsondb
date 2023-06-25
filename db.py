@@ -50,19 +50,19 @@ class Database:
         """
         return 'wb' if self.encrypt_flag else 'w'
 
-    def add_item(self, item: Item):
-        """
-        Add an item to the database
-        :param item:
-        """
-        self.item_collection.add(item)
-
-    def remove_item(self, uid: str):
-        """
-        Remove item from the database
-        :param uid: unique identifier
-        """
-        self.item_collection.remove(uid)
+    # def add_item(self, item: Item):
+    #     """
+    #     Add an item to the database
+    #     :param item:
+    #     """
+    #     self.item_collection.add(item)
+    #
+    # def remove_item(self, uid: str):
+    #     """
+    #     Remove item from the database
+    #     :param uid: unique identifier
+    #     """
+    #     self.item_collection.remove(uid)
 
     # def read(self):
     #     """
