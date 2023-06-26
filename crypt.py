@@ -3,6 +3,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 
+# Character encoding
+CHARACTER_ENCODING = 'utf-8'
+
 
 class Crypt:
 
@@ -21,7 +24,7 @@ class Crypt:
         :param password: password
         :return: key
         """
-        password_bytes = password.encode('utf-8')
+        password_bytes = password.encode(CHARACTER_ENCODING)
         salt = b'TDkmQ2TyV6HRw7pW'
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA512(),
@@ -37,7 +40,7 @@ class Crypt:
         :param data: data to encrypt
         :return: encrypted message
         """
-        return self.key.encrypt(data.encode('utf-8'))
+        return self.key.encrypt(data.encode(CHARACTER_ENCODING))
 
     def decrypt(self, data: bytes) -> str:
         """
@@ -45,7 +48,10 @@ class Crypt:
         :param data: data to decrypt
         :return: decrypted data
         """
-        return self.key.decrypt(data).decode('utf-8')
+        return self.key.decrypt(data).decode(CHARACTER_ENCODING)
+
+    def decrypt_string(self, data: str) -> str:
+        return self.key.decrypt(data.encode())
 
 
 if __name__ == '__main__':
