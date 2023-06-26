@@ -16,7 +16,6 @@ DB_TAGS_KEY = 'tags'
 DB_FIELDS_KEY = 'fields'
 DB_ITEMS_KEY = 'items'
 
-
 # Temporary file used when saving data
 TEMP_FILE = 'db.tmp'
 
@@ -34,7 +33,7 @@ class Database:
         self.item_collection = ItemCollection()
         # The database will be encrypted if a password is supplied
         self.encrypt_flag = True if password else False
-        self.key = Crypt(password) if self.encrypt_flag else None
+        self.crypt_key = Crypt(password) if self.encrypt_flag else None
 
     def read_mode(self) -> str:
         """
@@ -49,20 +48,6 @@ class Database:
         :return: write mode
         """
         return 'wb' if self.encrypt_flag else 'w'
-
-    # def add_item(self, item: Item):
-    #     """
-    #     Add an item to the database
-    #     :param item:
-    #     """
-    #     self.item_collection.add(item)
-    #
-    # def remove_item(self, uid: str):
-    #     """
-    #     Remove item from the database
-    #     :param uid: unique identifier
-    #     """
-    #     self.item_collection.remove(uid)
 
     # def read(self):
     #     """
@@ -121,7 +106,7 @@ class Database:
             data = f_in.read()
             if self.encrypt_flag:
                 assert isinstance(data, bytes)
-                data = self.key.decrypt(data)
+                data = self.crypt_key.decrypt(data)
             json_data = json.loads(data)
 
             # Read the tag table
@@ -150,7 +135,7 @@ class Database:
         """
         # Convert the database into json and encrypt if selected
         json_data = json.dumps(self.to_dict())
-        data = self.key.encrypt(json_data) if self.encrypt_flag else json_data
+        data = self.crypt_key.encrypt(json_data) if self.encrypt_flag else json_data
 
         # Write the data to a temporary file first
         with open(TEMP_FILE, self.write_mode()) as f_out:
