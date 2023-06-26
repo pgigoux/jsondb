@@ -75,6 +75,7 @@ subdictionaries. Only a few elements in the items are really relevant.
 import json
 import argparse
 from db import Database
+from crypt import Crypt, CHARACTER_ENCODING
 from items import FieldCollection, Item, Field
 from utils import trimmed_string, get_password
 from common import DEFAULT_DATABASE_NAME
@@ -149,11 +150,12 @@ def import_fields(db: Database, item_list: list):
                 pass
 
 
-def import_items(db: Database, item_list: list):
+def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
     """
     Import all items into the database. This is where the important data gets processed.
     :param db: database
     :param item_list: list of items
+    :param encrypt_key: key used to encrypt sensitive values (optional)
     """
     for item in item_list:
 
@@ -185,6 +187,8 @@ def import_items(db: Database, item_list: list):
                 for field in value:
                     try:
                         f_name, f_value, f_sensitive = process_field(field)
+                        if f_sensitive and encrypt_key is not None:
+                            f_value = encrypt_key.encrypt(f_value).decode(CHARACTER_ENCODING)
                         field_collection.add(Field(f_name, f_value, f_sensitive))
                     except ValueError:
                         # can be safely ignored
@@ -203,6 +207,7 @@ def import_database(input_file_name: str, output_file_name: str, password: str, 
     Import database and write output database
     :param input_file_name: database to import
     :param output_file_name: output database
+    :param password: password to encrypt the database (no encryption if blank)
     :param dump_database: print imported database to the standard output
     """
     with open(input_file_name, 'r') as f:
@@ -217,7 +222,7 @@ def import_database(input_file_name: str, output_file_name: str, password: str, 
     # Process the different sections
     import_tags(db, json_data['folders'])
     import_fields(db, json_data['items'])
-    import_items(db, json_data['items'])
+    import_items(db, json_data['items'], db.crypt_key)
 
     # Write file to disk
     db.write()
