@@ -75,7 +75,7 @@ subdictionaries. Only a few elements in the items are really relevant.
 import json
 import argparse
 from db import Database
-from crypt import Crypt, CHARACTER_ENCODING
+from crypt import Crypt
 from items import FieldCollection, Item, Field
 from utils import trimmed_string, get_password
 from common import DEFAULT_DATABASE_NAME
@@ -188,7 +188,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
                     try:
                         f_name, f_value, f_sensitive = process_field(field)
                         if f_sensitive and encrypt_key is not None:
-                            f_value = encrypt_key.encrypt(f_value).decode(CHARACTER_ENCODING)
+                            f_value = encrypt_key.encrypt_str2str(str(f_value))
                         field_collection.add(Field(f_name, f_value, f_sensitive))
                     except ValueError:
                         # can be safely ignored

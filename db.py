@@ -32,22 +32,25 @@ class Database:
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
         # The database will be encrypted if a password is supplied
-        self.encrypt_flag = True if password else False
-        self.crypt_key = Crypt(password) if self.encrypt_flag else None
+        # self.encrypt_flag = True if password else False
+        # self.crypt_key = Crypt(password) if self.encrypt_flag else None
+        self.crypt_key = Crypt(password) if password else None
 
     def read_mode(self) -> str:
         """
         Return the file write mode depending on whether encryption is enabled
         :return: write mode
         """
-        return 'rb' if self.encrypt_flag else 'r'
+        # return 'rb' if self.encrypt_flag else 'r'
+        return 'r' if self.crypt_key is None else 'rb'
 
     def write_mode(self) -> str:
         """
         Return the file write mode depending on whether encryption is enabled
         :return: write mode
         """
-        return 'wb' if self.encrypt_flag else 'w'
+        # return 'wb' if self.encrypt_flag else 'w'
+        return 'w' if self.crypt_key is None else 'wb'
 
     # def read(self):
     #     """
@@ -104,9 +107,9 @@ class Database:
         """
         with open(self.file_name, self.read_mode()) as f_in:
             data = f_in.read()
-            if self.encrypt_flag:
+            if self.crypt_key is not None:
                 assert isinstance(data, bytes)
-                data = self.crypt_key.decrypt(data)
+                data = self.crypt_key.decrypt_byte2str(data)
             json_data = json.loads(data)
 
             # Read the tag table
@@ -133,9 +136,10 @@ class Database:
         """
         Write the database file to disk
         """
-        # Convert the database into json and encrypt if selected
+        # Convert the database into json and encrypt if an encryption key is defined
         json_data = json.dumps(self.to_dict())
-        data = self.crypt_key.encrypt(json_data) if self.encrypt_flag else json_data
+        # data = self.crypt_key.encrypt_s2b(json_data) if self.encrypt_flag else json_data
+        data = json_data if self.crypt_key is None else self.crypt_key.encrypt_str2byte(json_data)
 
         # Write the data to a temporary file first
         with open(TEMP_FILE, self.write_mode()) as f_out:

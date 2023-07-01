@@ -34,30 +34,55 @@ class Crypt:
         )
         return Fernet(base64.urlsafe_b64encode(kdf.derive(bytes(password_bytes))))
 
-    def encrypt(self, data: str) -> bytes:
+    def encrypt_str2byte(self, data: str) -> bytes:
         """
-        Encrypt message using the generated key
+        Encrypt string data message into bytes
         :param data: data to encrypt
         :return: encrypted message
         """
         return self.key.encrypt(data.encode(CHARACTER_ENCODING))
 
-    def decrypt(self, data: bytes) -> str:
+    def encrypt_str2str(self, data: str) -> str:
         """
-        Decrypt data using the generated key
+        Encrypt string data message into string
+        :param data: data to encrypt
+        :return: encrypted message
+        """
+        return self.key.encrypt(data.encode(CHARACTER_ENCODING)).decode(CHARACTER_ENCODING)
+
+    def decrypt_byte2str(self, data: bytes) -> str:
+        """
+        Decrypt byte data message into string
         :param data: data to decrypt
         :return: decrypted data
         """
         return self.key.decrypt(data).decode(CHARACTER_ENCODING)
 
-    def decrypt_string(self, data: str) -> str:
-        return self.key.decrypt(data.encode())
+    def decrypt_str2str(self, data: str) -> str:
+        """
+        Decrypt string data message into string
+        :param data: data to decrypt
+        :return: decrypted data
+        """
+        return self.key.decrypt(data.encode(CHARACTER_ENCODING)).decode(CHARACTER_ENCODING)
+
+    @staticmethod
+    def dump(data: str | bytes):
+        print(type(data), '[' + str(data) + ']')
 
 
 if __name__ == '__main__':
     c = Crypt('password')
     m_in = 'this is a message'
-    d = c.encrypt(m_in)
-    print(type(d), d)
-    m_out = c.decrypt(d)
-    print(type(m_out), m_out)
+
+    m_enc = c.encrypt_str2byte(m_in)
+    c.dump(m_enc)
+    m_dec = c.decrypt_byte2str(m_enc)
+    c.dump(m_dec)
+    assert m_in == m_dec
+
+    m_enc = c.encrypt_str2str(m_in)
+    c.dump(m_enc)
+    m_dec = c.decrypt_str2str(m_enc)
+    c.dump(m_dec)
+    assert m_in == m_dec
