@@ -1,11 +1,6 @@
 import random
 import string
-from items import Item, Field
-
-# Keys used to access the name and unique identifier in the database
-# These keys are shared by items, fields and table elements
-KEY_NAME = 'name'
-KEY_UID = 'uid'
+from items import Item, Field, FieldCollection
 
 
 def random_bool() -> bool:
@@ -84,6 +79,17 @@ def random_field_list() -> list[Field]:
     return [random_field() for _ in range(random.randrange(1, 5))]
 
 
+def random_field_collection() -> FieldCollection:
+    """
+    Return a random field collection
+    :return:
+    """
+    fc = FieldCollection()
+    for _ in range(random.randrange(1, 5)):
+        fc.add(random_field())
+    return fc
+
+
 def random_item() -> Item:
     """
     Return an items with random contents
@@ -93,7 +99,7 @@ def random_item() -> Item:
                 random_string_list('tag-'),
                 random_string('note-'),
                 random_int(),
-                random_field_list())
+                random_field_collection())
 
 
 if __name__ == '__main__':
@@ -103,3 +109,4 @@ if __name__ == '__main__':
     print('value', random_value())
     print('string list', random_string_list())
     print('list element', random_list_element(list({'a': 1, 'b': 2, 'c': 3}.keys())))
+    random_item().dump()
