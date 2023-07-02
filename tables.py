@@ -142,20 +142,6 @@ class Table:
         else:
             raise KeyError(f'uid {uid} not in the table')
 
-    # def get_attributes(self, name='', uid='') -> dict:
-    #     """
-    #     Get the additional attributes for a table entry either by name or uid
-    #     :param name: name
-    #     :param uid: unique identifier
-    #     :raise: KeyError
-    #     """
-    #     if name and name in self.name_dict:
-    #         return self.attr_dict[self.name_dict[name]]
-    #     elif uid and uid in self.uid_dict:
-    #         return self.attr_dict[uid]
-    #     else:
-    #         raise KeyError(f'name={name} or uid={uid} not in the table')
-
     def get_attributes(self, uid) -> dict:
         """
         Get the additional attributes for a table entry either by name or uid
@@ -167,7 +153,7 @@ class Table:
         else:
             raise KeyError(f'uid={uid} not in the table')
 
-    def to_dict(self) -> list:
+    def export(self) -> list:
         """
         Return table elements as a list of dictionaries where each element is the name,
         the unique identifier and the attributes.
@@ -237,5 +223,5 @@ if __name__ == '__main__':
     ft.add('password', sensitive=True, uid='6')
     ft.add('url')
     print('sensitive', ft.is_sensitive('6'))
-    print(ft.to_dict())
+    print(ft.export())
     ft.dump()

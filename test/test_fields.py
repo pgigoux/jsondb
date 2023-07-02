@@ -14,7 +14,7 @@ def test_field():
 
 
 def test_field_to_dict():
-    d = Field('field_1', 'abc', False).to_dict()
+    d = Field('field_1', 'abc', False).export()
     assert FIELD_NAME_KEY in d
     assert FIELD_VALUE_KEY in d
     assert FIELD_NAME_KEY in d
@@ -22,7 +22,7 @@ def test_field_to_dict():
     assert d[FIELD_VALUE_KEY] == 'abc'
     assert d[FIELD_SENSITIVE_KEY] is False
 
-    d = Field('field_2', 100, True).to_dict()
+    d = Field('field_2', 100, True).export()
     assert FIELD_NAME_KEY in d
     assert FIELD_VALUE_KEY in d
     assert FIELD_NAME_KEY in d

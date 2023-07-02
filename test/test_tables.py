@@ -95,7 +95,7 @@ def test_tag_table():
     tt.add('one', uid='1000')
     tt.add('two', uid='2000')
 
-    assert tt.to_dict() == [{'name': 'one', 'uid': '1000'}, {'name': 'two', 'uid': '2000'}]
+    assert tt.export() == [{'name': 'one', 'uid': '1000'}, {'name': 'two', 'uid': '2000'}]
 
 
 def test_field_table():
@@ -108,5 +108,5 @@ def test_field_table():
     assert tt.is_sensitive('1000') is True
     assert tt.is_sensitive('2000') is False
 
-    assert tt.to_dict() == [{'name': 'one', 'uid': '1000', 'sensitive': True},
-                            {'name': 'two', 'uid': '2000', 'sensitive': False}]
+    assert tt.export() == [{'name': 'one', 'uid': '1000', 'sensitive': True},
+                           {'name': 'two', 'uid': '2000', 'sensitive': False}]

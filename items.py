@@ -27,9 +27,9 @@ class Element(ABC):
         pass
 
     @abstractmethod
-    def to_dict(self):
+    def export(self):
         """
-        Return a dictionary representation of the element
+        Export the element as a dictionary or list
         :return:
         """
         pass
@@ -150,7 +150,7 @@ class Field(Element):
         """
         return self.uid
 
-    def to_dict(self) -> dict:
+    def export(self) -> dict:
         """
         Convert field into a dictionary
         :return: dictionary with field elements (name, value, sensitive flag)
@@ -169,7 +169,7 @@ class Field(Element):
 
 class FieldCollection(Collection):
 
-    def to_dict(self) -> dict:
+    def export(self) -> dict:
         """
         Export the item collection as a dictionary
         :return: dictionary representation
@@ -178,7 +178,7 @@ class FieldCollection(Collection):
         for key in self.data:
             f = self.data[key]
             assert isinstance(f, Field)
-            d[key] = f.to_dict()
+            d[key] = f.export()
         return d
 
     def dump(self, indent=0):
@@ -223,7 +223,7 @@ class Item(Element):
         for field in self.fields.next():
             yield field
 
-    def to_dict(self):
+    def export(self):
         """
         Export the item as a dictionary
         :return: dictionary representation
@@ -233,7 +233,7 @@ class Item(Element):
                 ITEM_NOTE_KEY: self.note,
                 ITEM_TIMESTAMP_KEY: self.time_stamp,
                 ITEM_UID_KEY: self.uid,
-                ITEM_FIELDS_KEY: self.fields.to_dict()
+                ITEM_FIELDS_KEY: self.fields.export()
                 }
 
     def dump(self, indent=0):
@@ -254,7 +254,7 @@ class Item(Element):
 
 class ItemCollection(Collection):
 
-    def to_dict(self) -> dict:
+    def export(self) -> dict:
         """
         Export the item collection as a dictionary
         :return:
@@ -263,7 +263,7 @@ class ItemCollection(Collection):
         for item_uid in self.data:
             item = self.data[item_uid]
             assert isinstance(item, Item)
-            d[item_uid] = item.to_dict()
+            d[item_uid] = item.export()
         return d
 
     def dump(self, indent=0):
@@ -282,7 +282,7 @@ if __name__ == '__main__':
     fc1.add(Field('one', 1, True))
     fc1.add(Field('two', '2', False))
     print(fc1)
-    print(fc1.to_dict())
+    print(fc1.export())
     fc1.dump()
 
     print('-' * 30)
@@ -291,19 +291,19 @@ if __name__ == '__main__':
     fc2.add(Field('letter', 'b', False))
     fc2.add(Field('digit', '2', False))
     print(fc2)
-    print(fc2.to_dict())
+    print(fc2.export())
     fc2.dump()
 
     print('-' * 30)
     i1 = Item('it1', ['a', 'b'], 'note1', 1234, fc1)
     print(i1)
-    print(i1.to_dict())
+    print(i1.export())
     i1.dump()
 
     print('-' * 30)
     i2 = Item('it2', ['c', 'd', 'e'], 'note2', 1000, fc2)
     print(i2)
-    print(i2.to_dict())
+    print(i2.export())
     i2.dump()
 
     pass
