@@ -13,8 +13,15 @@ def get_uid() -> str:
     return str(uuid.uuid4())
 
 
-def match_strings(s1: str, s2: str):
-    return True if re.search(s1.lower(), s2.lower()) else False
+def match_strings(pattern: str, s: str):
+    """
+    Check whether a regex pattern is contained into another string.
+    The string matching is case insensitive.
+    :param pattern: pattern to match
+    :param s: string where to search
+    :return: True in the string is
+    """
+    return True if re.search(pattern.lower(), s.lower()) else False
 
 
 def trimmed_string(value: str) -> str:
@@ -52,7 +59,7 @@ def timestamp() -> str:
 
 def get_password():
     """
-    Get password from the standard input.
+    Read a password from the standard input.
     :return:
     """
     return getpass.getpass('Password: ').strip()
