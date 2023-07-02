@@ -52,55 +52,6 @@ class Database:
         # return 'wb' if self.encrypt_flag else 'w'
         return 'w' if self.crypt_key is None else 'wb'
 
-    # def read(self):
-    #     """
-    #     Read the database file from disk
-    #     raise: FileNotFoundError
-    #     """
-    #     with open(self.file_name, 'r') as f_in:
-    #         # Read the data form the file
-    #         data = json.loads(f_in.read())
-    #
-    #         # Read the tag table
-    #         for tag in data[DB_TAGS_KEY]:
-    #             self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
-    #
-    #         # Read the field table
-    #         for field in data[DB_FIELDS_KEY]:
-    #             self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
-    #
-    #         # Read the items
-    #         for item_uid in data[DB_ITEMS_KEY]:
-    #             item = data[DB_ITEMS_KEY][item_uid]
-    #             fc = FieldCollection()
-    #             for field_uid in item[ITEM_FIELDS_KEY]:
-    #                 field = item[ITEM_FIELDS_KEY][field_uid]
-    #                 fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
-    #             self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
-    #                                           item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
-    #
-    #     f_in.close()
-    #
-    # def write(self):
-    #     """
-    #     Write the database file to disk
-    #     :return:
-    #     """
-    #     # Construct the database into a single dictionary
-    #     d = {DB_TAGS_KEY: self.tag_table.to_dict(),
-    #          DB_FIELDS_KEY: self.field_table.to_dict(),
-    #          DB_ITEMS_KEY: self.item_collection.to_dict()}
-    #
-    #     # Write the data to a temporary file
-    #     with open(TEMP_FILE, 'w') as f_out:
-    #         json.dump(d, f_out)
-    #     f_out.close()
-    #
-    #     # Rename files. The old file is renamed using a time stamp.
-    #     if exists(self.file_name):
-    #         os.rename(self.file_name, self.file_name + '-' + timestamp())
-    #     os.rename(TEMP_FILE, self.file_name)
-
     def read(self):
         """
         Read the database file from disk
@@ -137,7 +88,7 @@ class Database:
         Write the database file to disk
         """
         # Convert the database into json and encrypt if an encryption key is defined
-        json_data = json.dumps(self.to_dict())
+        json_data = json.dumps(self.export())
         # data = self.crypt_key.encrypt_s2b(json_data) if self.encrypt_flag else json_data
         data = json_data if self.crypt_key is None else self.crypt_key.encrypt_str2byte(json_data)
 
@@ -151,13 +102,21 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
-    def export(self, decrypt_sensitive=False):
+    def import_from_json(self, encrypt_sensitive=True):
+        """
+        :param encrypt_sensitive:
+        :return:
+        """
+        pass
+
+    def export_to_json(self, decrypt_sensitive=True):
         """
         Export the database as json
         :param decrypt_sensitive: write sensitive data in plain text?
         :return:
         """
-        # TODO
+        d = self.export()
+        print(d.keys())
         pass
 
     def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
@@ -190,14 +149,14 @@ class Database:
 
         return output_list
 
-    def to_dict(self):
+    def export(self):
         """
         Export the database as a dictionary
         :return:
         """
-        return {DB_TAGS_KEY: self.tag_table.to_dict(),
-                DB_FIELDS_KEY: self.field_table.to_dict(),
-                DB_ITEMS_KEY: self.item_collection.to_dict()}
+        return {DB_TAGS_KEY: self.tag_table.export(),
+                DB_FIELDS_KEY: self.field_table.export(),
+                DB_ITEMS_KEY: self.item_collection.export()}
 
     def dump(self):
         print(f'-- Database {self.file_name}')
@@ -209,5 +168,6 @@ class Database:
 if __name__ == '__main__':
     db = Database(DEFAULT_DATABASE_NAME, 'test')
     db.read()
-    db.dump()
+    # db.dump()
+    db.export_to_json()
     pass
