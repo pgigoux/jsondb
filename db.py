@@ -157,6 +157,7 @@ class Database:
         :param decrypt_sensitive: write sensitive data in plain text?
         :return:
         """
+        # TODO
         pass
 
     def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
