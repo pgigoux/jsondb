@@ -72,8 +72,8 @@ class Crypt:
 
 
 if __name__ == '__main__':
-    c = Crypt('password')
-    m_in = 'this is a message'
+    c = Crypt('test')
+    m_in = 'This is a text string'
 
     m_enc = c.encrypt_str2byte(m_in)
     c.dump(m_enc)
