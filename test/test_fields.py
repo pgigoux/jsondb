@@ -1,5 +1,6 @@
 import pytest
-from testing import random_bool, random_string, random_value, random_list_element, random_field
+from crypt import Crypt
+from testing import random_bool, random_string, random_int, random_value, random_list_element, random_field
 from items import FieldCollection, Field
 from items import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 
@@ -13,21 +14,47 @@ def test_field():
     assert isinstance(f, Field)
 
 
-def test_field_to_dict():
-    d = Field('field_1', 'abc', False).export()
+def test_field_export():
+    value = random_string()
+    d = Field('field_1', value, False).export()
     assert FIELD_NAME_KEY in d
     assert FIELD_VALUE_KEY in d
     assert FIELD_NAME_KEY in d
     assert d[FIELD_NAME_KEY] == 'field_1'
-    assert d[FIELD_VALUE_KEY] == 'abc'
+    assert d[FIELD_VALUE_KEY] == value
     assert d[FIELD_SENSITIVE_KEY] is False
 
-    d = Field('field_2', 100, True).export()
+    value = random_int()
+    d = Field('field_2', value, True).export()
     assert FIELD_NAME_KEY in d
     assert FIELD_VALUE_KEY in d
     assert FIELD_NAME_KEY in d
     assert d[FIELD_NAME_KEY] == 'field_2'
-    assert d[FIELD_VALUE_KEY] == 100
+    assert d[FIELD_VALUE_KEY] == value
+    assert d[FIELD_SENSITIVE_KEY] is True
+
+
+def test_field_export_encryption():
+    c = Crypt('test')
+    value = random_string()
+    encrypted_value = c.encrypt_str2str(value)
+
+    # non-sensitive value
+    d = Field('field_1', encrypted_value, False).export(crypt=c)
+    assert FIELD_NAME_KEY in d
+    assert FIELD_VALUE_KEY in d
+    assert FIELD_NAME_KEY in d
+    assert d[FIELD_NAME_KEY] == 'field_1'
+    assert d[FIELD_VALUE_KEY] == encrypted_value
+    assert d[FIELD_SENSITIVE_KEY] is False
+
+    # sensitive value
+    d = Field('field_2', encrypted_value, True).export(crypt=c)
+    assert FIELD_NAME_KEY in d
+    assert FIELD_VALUE_KEY in d
+    assert FIELD_NAME_KEY in d
+    assert d[FIELD_NAME_KEY] == 'field_2'
+    assert d[FIELD_VALUE_KEY] == value
     assert d[FIELD_SENSITIVE_KEY] is True
 
 

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Generator
+from typing import Generator, Optional
+from crypt import Crypt
 from utils import get_uid, filter_control_characters
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
@@ -150,12 +151,18 @@ class Field(Element):
         """
         return self.uid
 
-    def export(self) -> dict:
+    def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Convert field into a dictionary
+        Sensitive values are returned in plain text in a decryption key is provided.
+        :param crypt: decryption key (optional)
         :return: dictionary with field elements (name, value, sensitive flag)
         """
-        return {FIELD_NAME_KEY: self.name, FIELD_VALUE_KEY: self.value,
+        if self.sensitive and crypt is not None:
+            value = crypt.decrypt_str2str(self.value)
+        else:
+            value = self.value
+        return {FIELD_NAME_KEY: self.name, FIELD_VALUE_KEY: value,
                 FIELD_SENSITIVE_KEY: self.sensitive, FIELD_UID_KEY: str(self.uid)}
 
     def dump(self, indent=0):
@@ -169,16 +176,18 @@ class Field(Element):
 
 class FieldCollection(Collection):
 
-    def export(self) -> dict:
+    def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Export the item collection as a dictionary
+        Sensitive values are returned in plain text in a decryption key is provided.
+        :param crypt: decryption key (optional)
         :return: dictionary representation
         """
         d = {}
         for key in self.data:
             f = self.data[key]
             assert isinstance(f, Field)
-            d[key] = f.export()
+            d[key] = f.export(crypt)
         return d
 
     def dump(self, indent=0):
@@ -199,13 +208,13 @@ class Item(Element):
         self.note = note
         self.time_stamp = time_stamp
         self.uid = get_uid()
-        self.fields = field_collection
+        self.field_collection = field_collection
 
     def __str__(self):
         """
         :return: string representation of the item
         """
-        field_list = [str(f) for f in self.fields.next()]
+        field_list = [str(f) for f in self.field_collection.next()]
         return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {field_list}'
 
     def get_id(self):
@@ -220,12 +229,14 @@ class Item(Element):
         Return the next field in an item
         :return: next field
         """
-        for field in self.fields.next():
+        for field in self.field_collection.next():
             yield field
 
-    def export(self):
+    def export(self, crypt: Optional[Crypt] = None):
         """
         Export the item as a dictionary
+        Sensitive values are returned in plain text in a decryption key is provided.
+        :param crypt: decryption key (optional)
         :return: dictionary representation
         """
         return {ITEM_NAME_KEY: self.name,
@@ -233,7 +244,7 @@ class Item(Element):
                 ITEM_NOTE_KEY: self.note,
                 ITEM_TIMESTAMP_KEY: self.time_stamp,
                 ITEM_UID_KEY: self.uid,
-                ITEM_FIELDS_KEY: self.fields.export()
+                ITEM_FIELDS_KEY: self.field_collection.export(crypt=crypt)
                 }
 
     def dump(self, indent=0):
@@ -247,23 +258,25 @@ class Item(Element):
         note = filter_control_characters(self.note)
         print(margin + f'\tnote={note}')
         print(margin + f'\ttags={self.tags}')
-        for field in self.fields.next():
+        for field in self.field_collection.next():
             assert isinstance(field, Field)
             field.dump(indent=indent + 1)
 
 
 class ItemCollection(Collection):
 
-    def export(self) -> dict:
+    def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Export the item collection as a dictionary
+        Sensitive values are returned in plain text in a decryption key is provided.
+        :param crypt: decryption key (optional)
         :return:
         """
         d = {}
         for item_uid in self.data:
             item = self.data[item_uid]
             assert isinstance(item, Item)
-            d[item_uid] = item.export()
+            d[item_uid] = item.export(crypt=crypt)
         return d
 
     def dump(self, indent=0):
