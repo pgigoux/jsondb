@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from typing import Optional
 from os.path import exists
 from items import ItemCollection, FieldCollection, Item, Field
 from common import KEY_NAME, KEY_UID
@@ -102,22 +103,16 @@ class Database:
             os.rename(self.file_name, self.file_name + '-' + timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
-    def import_from_json(self, encrypt_sensitive=True):
-        """
-        :param encrypt_sensitive:
-        :return:
-        """
-        pass
-
-    def export_to_json(self, decrypt_sensitive=True):
+    def export_to_json(self, file_name: str):
         """
         Export the database as json
-        :param decrypt_sensitive: write sensitive data in plain text?
         :return:
         """
-        d = self.export()
-        print(d.keys())
-        pass
+        d = self.export(crypt=self.crypt_key)
+        json_data = json.dumps(d)
+        with open(file_name, 'w') as f:
+            f.write(json_data)
+            f.close()
 
     def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
                tag=False, note=False) -> list[Item]:
@@ -149,14 +144,14 @@ class Database:
 
         return output_list
 
-    def export(self):
+    def export(self, crypt: Optional[Crypt] = None):
         """
         Export the database as a dictionary
         :return:
         """
         return {DB_TAGS_KEY: self.tag_table.export(),
                 DB_FIELDS_KEY: self.field_table.export(),
-                DB_ITEMS_KEY: self.item_collection.export()}
+                DB_ITEMS_KEY: self.item_collection.export(crypt=crypt)}
 
     def dump(self):
         print(f'-- Database {self.file_name}')
@@ -168,6 +163,6 @@ class Database:
 if __name__ == '__main__':
     db = Database(DEFAULT_DATABASE_NAME, 'test')
     db.read()
-    # db.dump()
-    db.export_to_json()
-    pass
+    db.dump()
+    db.export_to_json('export.json')
+
