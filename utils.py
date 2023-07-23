@@ -57,7 +57,7 @@ def timestamp() -> str:
     return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
 
-def get_password():
+def get_password() -> str:
     """
     Read a password from the standard input.
     :return:
