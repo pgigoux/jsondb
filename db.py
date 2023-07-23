@@ -33,8 +33,6 @@ class Database:
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
         # The database will be encrypted if a password is supplied
-        # self.encrypt_flag = True if password else False
-        # self.crypt_key = Crypt(password) if self.encrypt_flag else None
         self.crypt_key = Crypt(password) if password else None
 
     def read_mode(self) -> str:
@@ -42,7 +40,6 @@ class Database:
         Return the file write mode depending on whether encryption is enabled
         :return: write mode
         """
-        # return 'rb' if self.encrypt_flag else 'r'
         return 'r' if self.crypt_key is None else 'rb'
 
     def write_mode(self) -> str:
@@ -50,8 +47,16 @@ class Database:
         Return the file write mode depending on whether encryption is enabled
         :return: write mode
         """
-        # return 'wb' if self.encrypt_flag else 'w'
         return 'w' if self.crypt_key is None else 'wb'
+
+    def clear(self):
+        """
+        Clear data. This function will be used to initialize the database to avoid leaving it
+        in an undefined state (e.g. if a read fails half the way through).
+        """
+        self.tag_table = TagTable()
+        self.field_table = FieldTable()
+        self.item_collection = ItemCollection()
 
     def read(self):
         """
@@ -61,26 +66,44 @@ class Database:
             data = f_in.read()
             if self.crypt_key is not None:
                 assert isinstance(data, bytes)
-                data = self.crypt_key.decrypt_byte2str(data)
-            json_data = json.loads(data)
+                try:
+                    data = self.crypt_key.decrypt_byte2str(data)
+                except Exception as e:
+                    raise ValueError(f'failed to decrypt data: {repr(e)}')
+            try:
+                json_data = json.loads(data)
+            except Exception as e:
+                raise IOError(f'failed to read the data: {repr(e)}')
 
             # Read the tag table
-            for tag in json_data[DB_TAGS_KEY]:
-                self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
+            try:
+                for tag in json_data[DB_TAGS_KEY]:
+                    self.tag_table.add(tag[KEY_NAME], tag[KEY_UID])
+            except Exception as e:
+                self.clear()
+                raise ValueError(f'failed to read tag table: {repr(e)}')
 
             # Read the field table
-            for field in json_data[DB_FIELDS_KEY]:
-                self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
+            try:
+                for field in json_data[DB_FIELDS_KEY]:
+                    self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
+            except Exception as e:
+                self.clear()
+                raise ValueError(f'failed to read field table: {repr(e)}')
 
             # Read the items
-            for item_uid in json_data[DB_ITEMS_KEY]:
-                item = json_data[DB_ITEMS_KEY][item_uid]
-                fc = FieldCollection()
-                for field_uid in item[ITEM_FIELDS_KEY]:
-                    field = item[ITEM_FIELDS_KEY][field_uid]
-                    fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
-                self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
-                                              item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+            try:
+                for item_uid in json_data[DB_ITEMS_KEY]:
+                    item = json_data[DB_ITEMS_KEY][item_uid]
+                    fc = FieldCollection()
+                    for field_uid in item[ITEM_FIELDS_KEY]:
+                        field = item[ITEM_FIELDS_KEY][field_uid]
+                        fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
+                    self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
+                                                  item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+            except Exception as e:
+                self.clear()
+                raise ValueError(f'failed to read items: {repr(e)}')
 
         f_in.close()
 
@@ -90,7 +113,6 @@ class Database:
         """
         # Convert the database into json and encrypt if an encryption key is defined
         json_data = json.dumps(self.export())
-        # data = self.crypt_key.encrypt_s2b(json_data) if self.encrypt_flag else json_data
         data = json_data if self.crypt_key is None else self.crypt_key.encrypt_str2byte(json_data)
 
         # Write the data to a temporary file first
@@ -105,8 +127,7 @@ class Database:
 
     def export_to_json(self, file_name: str):
         """
-        Export the database as json
-        :return:
+        Export the database as json into a file
         """
         d = self.export(crypt=self.crypt_key)
         json_data = json.dumps(d)
@@ -165,4 +186,3 @@ if __name__ == '__main__':
     db.read()
     db.dump()
     db.export_to_json('export.json')
-
