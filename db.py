@@ -61,6 +61,7 @@ class Database:
     def read(self):
         """
         Read the database file from disk
+        :raise FileNotFoundError, ValueError
         """
         with open(self.file_name, self.read_mode()) as f_in:
             data = f_in.read()
@@ -73,7 +74,7 @@ class Database:
             try:
                 json_data = json.loads(data)
             except Exception as e:
-                raise IOError(f'failed to read the data: {repr(e)}')
+                raise ValueError(f'failed to read the data: {repr(e)}')
 
             # Read the tag table
             try:
@@ -185,4 +186,4 @@ if __name__ == '__main__':
     db = Database(DEFAULT_DATABASE_NAME, 'test')
     db.read()
     db.dump()
-    db.export_to_json('export.json')
+    # db.export_to_json('export.json')
