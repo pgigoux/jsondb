@@ -64,7 +64,6 @@ STRING_DELIMITERS = ['\'', '"']
 class Lexer:
 
     def __init__(self):
-
         self.command = ''
         self.count = 0
         self.char_list = []
@@ -84,8 +83,8 @@ class Lexer:
         :return:
         """
         # the trailing space is needed by the state machine to parse properly
-        self.command = command.strip() + ' '
-        self.char_list = list(command + ' ')
+        self.command = command.strip()
+        self.char_list = list(self.command + ' ')
         self.state = State.START
         self.count = 0
 
@@ -158,21 +157,9 @@ class Lexer:
 
 if __name__ == '__main__':
     lx = Lexer()
-
-    # lx.input('"this is a string"')
-    # for w in lx.next():
-    #     print(w)
-    #
-    # exit(0)
-
     lx.input('item "this is a string" list 20/10/2022 07/24 3.4 7 +')
-    lx.input('"this is a string')
     while True:
         t, v = lx.next_token()
         print(t, v)
         if t in [Token.EOS, Token.UNTERMINATED, Token.INVALID]:
             break
-
-    # lx.input('field count 34')
-    # for w in lx.next():
-    #     print(w)
