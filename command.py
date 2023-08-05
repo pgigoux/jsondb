@@ -8,7 +8,11 @@ class CommandProcessor:
         self.file_name = ''
         self.db = None
 
-    def open_database(self) -> bool:
+    def read_database(self) -> bool:
+        """
+        Read database into memory
+        :return:
+        """
         self.db = Database(self.file_name, get_password())
         try:
             self.db.read()
@@ -19,16 +23,16 @@ class CommandProcessor:
             print('Failed to read database')
         return False
 
-    def no_database(self):
+    def no_database(self) -> bool:
+        """
+        Check whether there's a database in memory
+        :return: True if that's the case, False otherwise
+        """
         if self.db is None:
-            print('No database')
+            print('No database loaded')
             return False
         else:
             return True
-
-    def process_item_command(self):
-        if self.no_database():
-            return
 
     def read_command(self, file_name=DEFAULT_DATABASE_NAME):
 
@@ -40,7 +44,8 @@ class CommandProcessor:
                 return
 
         # Read the database
-        self.db = Database(self.file_name, get_password())
+        self.db = Database(file_name, get_password())
+        self.file_name = file_name
         try:
             self.db.read()
             return
