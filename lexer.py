@@ -20,6 +20,9 @@ class Token(Enum):
     FIELD = auto()
     TAG = auto()
     ADD = auto()
+    READ = auto()
+    SAVE = auto()
+    EXPORT = auto()
     # subcommands
     LIST = auto()
     SEARCH = auto()
@@ -33,11 +36,18 @@ class Token(Enum):
     NAME = auto()
     FILE = auto()
     VALUE = auto()
-    # NUMBER = auto()
     STRING = auto()
     # misc
+    EOS = auto()
     INVALID = auto()
     UNTERMINATED = auto()  # unterminated string
+
+
+# Token classes
+LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
+LEX_INPUT_OUTPUT = [Token.READ, Token.SAVE, Token.EXPORT]
+LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.SEARCH, Token.PRINT,
+                   Token.COUNT, Token.RENAME, Token.DELETE, Token.EDIT]
 
 
 # DFA states
@@ -57,9 +67,11 @@ class Lexer:
 
         self.command = ''
         self.count = 0
+        self.char_list = []
         self.state = State.START
         self.keywords = {
             'item': Token.ITEM, 'field': Token.FIELD, 'tag': Token.TAG,
+            'read': Token.READ, 'save': Token.SAVE, 'export': Token.EXPORT,
             'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
             'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
             'ren': Token.RENAME, 'del': Token.DELETE  # aliases
@@ -72,7 +84,9 @@ class Lexer:
         """
         # the trailing space is needed by the state machine to parse properly
         self.command = command.strip() + ' '
+        self.char_list = list(command + ' ')
         self.state = State.START
+        self.count = 0
 
     def token(self, word: str) -> tuple[Token, Union[str, int, float, None]]:
         """
@@ -102,14 +116,14 @@ class Lexer:
             t = Token.INVALID, word
         return t
 
-    def next(self) -> tuple[Token, Union[str, int, float]]:
+    def next_token(self) -> tuple[Token, Union[str, int, float]]:
         """
-        Return next token
-        :return: next token
+        Return the next token in the input stream
+        :return: tuple containing the token and value
         """
         word = ''
-        self.count = 0
-        for c in list(self.command):
+        while self.count < len(self.char_list):
+            c = self.char_list[self.count]
             self.count += 1
             assert isinstance(c, str)
             if self.state == State.START:
@@ -123,35 +137,41 @@ class Lexer:
                     self.state = State.WORD  # start of word
             elif self.state == State.WORD:
                 if c.isspace():
-                    yield self.token(word)  # end of word
                     self.state = State.START
+                    return self.token(word)  # end of word
                 else:
                     word += c
             elif self.state == State.STRING:
                 if c in STRING_DELIMITERS:
-                    yield Token.STRING, word  # end of string
                     self.state = State.START
+                    return Token.STRING, word  # end of string
                 else:
                     word += c
 
         # Check for unterminated string
         if self.state == State.STRING:
-            yield Token.UNTERMINATED, ''
+            return Token.UNTERMINATED, ''
+        else:
+            return Token.EOS, ''
 
 
 if __name__ == '__main__':
     lx = Lexer()
 
-    lx.input('"this is a string"')
-    for w in lx.next():
-        print(w)
-
-    exit(0)
+    # lx.input('"this is a string"')
+    # for w in lx.next():
+    #     print(w)
+    #
+    # exit(0)
 
     lx.input('item "this is a string" list 20/10/2022 07/24 3.4 7 +')
-    for w in lx.next():
-        print(w)
+    lx.input('"this is a string')
+    while True:
+        t, v = lx.next_token()
+        print(t, v)
+        if t in [Token.EOS, Token.UNTERMINATED, Token.INVALID]:
+            break
 
-    lx.input('field count 34')
-    for w in lx.next():
-        print(w)
+    # lx.input('field count 34')
+    # for w in lx.next():
+    #     print(w)
