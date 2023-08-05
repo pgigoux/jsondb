@@ -21,7 +21,7 @@ class Token(Enum):
     TAG = auto()
     ADD = auto()
     READ = auto()
-    SAVE = auto()
+    WRITE = auto()
     EXPORT = auto()
     # subcommands
     LIST = auto()
@@ -45,7 +45,7 @@ class Token(Enum):
 
 # Token classes
 LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
-LEX_INPUT_OUTPUT = [Token.READ, Token.SAVE, Token.EXPORT]
+LEX_INPUT_OUTPUT = [Token.READ, Token.WRITE, Token.EXPORT]
 LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.SEARCH, Token.PRINT,
                    Token.COUNT, Token.RENAME, Token.DELETE, Token.EDIT]
 
@@ -71,10 +71,11 @@ class Lexer:
         self.state = State.START
         self.keywords = {
             'item': Token.ITEM, 'field': Token.FIELD, 'tag': Token.TAG,
-            'read': Token.READ, 'save': Token.SAVE, 'export': Token.EXPORT,
+            'read': Token.READ, 'write': Token.WRITE, 'export': Token.EXPORT,
             'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
             'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
-            'ren': Token.RENAME, 'del': Token.DELETE  # aliases
+            # aliases
+            'save': Token.WRITE, 'ren': Token.RENAME, 'del': Token.DELETE
         }
 
     def input(self, command: str):
