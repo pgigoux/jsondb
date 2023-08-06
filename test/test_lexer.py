@@ -1,11 +1,19 @@
-from lexer import Lexer, Token
+from lexer import Lexer, Token, UNTERMINATED_STRING
 
 
 def test_keywords():
     lx = Lexer()
+
     assert lx.token('item') == (Token.ITEM, 'item')
     assert lx.token('field') == (Token.FIELD, 'field')
     assert lx.token('tag') == (Token.TAG, 'tag')
+
+    assert lx.token('create') == (Token.CREATE, 'create')
+    assert lx.token('read') == (Token.READ, 'read')
+    assert lx.token('write') == (Token.WRITE, 'write')
+    assert lx.token('export') == (Token.EXPORT, 'export')
+    assert lx.token('save') == (Token.WRITE, 'save')
+
     assert lx.token('list') == (Token.LIST, 'list')
     assert lx.token('search') == (Token.SEARCH, 'search')
     assert lx.token('print') == (Token.PRINT, 'print')
@@ -37,39 +45,32 @@ def test_strings():
     lx.input("'this is another string'")
     assert lx.next_token() == (Token.STRING, 'this is another string')
 
-    lx.input("'this is another string'")
-    assert lx.next_token() == (Token.STRING, 'this is another string')
+    lx.input("'this is an unterminated string")
+    t, v = lx.next_token()
+    assert t == Token.INVALID and v.find(UNTERMINATED_STRING) == 0
 
-    lx.input("'this is another string")
-    assert lx.next_token() == (Token.UNTERMINATED, '')
+    lx.input("'this is another unterminated string")
+    assert t == Token.INVALID and v.find(UNTERMINATED_STRING) == 0
 
 
 def test_next():
     lx = Lexer()
 
     lx.input('item search name 8 "one string" joe')
-    out = []
-    while True:
-        t, v = lx.next_token()
-        out.append((t, v))
-        if t == Token.EOS:
-            break
-    assert out == [(Token.ITEM, 'item'),
-                   (Token.SEARCH, 'search'),
-                   (Token.NAME, 'name'),
-                   (Token.VALUE, 8),
-                   (Token.STRING, 'one string'),
-                   (Token.NAME, 'joe'),
-                   (Token.EOS, '')]
+    assert lx.next_token() == (Token.ITEM, 'item')
+    assert lx.next_token() == (Token.SEARCH, 'search')
+    assert lx.next_token() == (Token.NAME, 'name')
+    assert lx.next_token() == (Token.VALUE, 8)
+    assert lx.next_token() == (Token.STRING, 'one string')
+    assert lx.next_token() == (Token.NAME, 'joe')
+    assert lx.next_token() == (Token.EOS, '')
 
-    lx.input('field list "unterminated string 8')
-    out = []
-    while True:
-        t, v = lx.next_token()
-        out.append((t, v))
-        if t == Token.UNTERMINATED:
-            break
-    assert out == [(Token.FIELD, 'field'), (Token.LIST, 'list'), (Token.UNTERMINATED, '')]
+    lx.input('field list "some unterminated string 8')
+    assert lx.next_token() == (Token.FIELD, 'field')
+    assert lx.next_token() == (Token.LIST, 'list')
+    t, v = lx.next_token()
+    assert t == Token.INVALID and v.find(UNTERMINATED_STRING) == 0
 
-# if __name__ == '__main__':
-#     test_next()
+
+if __name__ == '__main__':
+    test_keywords()

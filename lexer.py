@@ -20,6 +20,7 @@ class Token(Enum):
     FIELD = auto()
     TAG = auto()
     ADD = auto()
+    CREATE = auto()
     READ = auto()
     WRITE = auto()
     EXPORT = auto()
@@ -38,14 +39,15 @@ class Token(Enum):
     VALUE = auto()
     STRING = auto()
     # misc
+    QUIT = auto()
     EOS = auto()
+    # error
     INVALID = auto()
-    UNTERMINATED = auto()  # unterminated string
 
 
 # Token classes
 LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
-LEX_INPUT_OUTPUT = [Token.READ, Token.WRITE, Token.EXPORT]
+LEX_INPUT_OUTPUT = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT]
 LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.SEARCH, Token.PRINT,
                    Token.COUNT, Token.RENAME, Token.DELETE, Token.EDIT]
 
@@ -60,6 +62,9 @@ class State(Enum):
 # Valid string delimiters
 STRING_DELIMITERS = ['\'', '"']
 
+# Unterminated string error message
+UNTERMINATED_STRING = 'unterminated'
+
 
 class Lexer:
 
@@ -70,7 +75,7 @@ class Lexer:
         self.state = State.START
         self.keywords = {
             'item': Token.ITEM, 'field': Token.FIELD, 'tag': Token.TAG,
-            'read': Token.READ, 'write': Token.WRITE, 'export': Token.EXPORT,
+            'create': Token.CREATE, 'read': Token.READ, 'write': Token.WRITE, 'export': Token.EXPORT,
             'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
             'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
             # aliases
@@ -88,33 +93,33 @@ class Lexer:
         self.state = State.START
         self.count = 0
 
-    def token(self, word: str) -> tuple[Token, Union[str, int, float, None]]:
+    def token(self, word: str) -> tuple[Token, Union[str, int, float]]:
         """
         Check for matching patterns and return token code and data.
         Keywords are always checked first.
         The order patterns are checked matters.
         :param word:
-        :return:
+        :return: tuple containing the toekn and its value
         """
         if word in self.keywords:
-            t = self.keywords[word], word
+            tup = self.keywords[word], word
         elif re.search(UID_PATTERN, word):
-            t = Token.UID, word
+            tup = Token.UID, word
         elif re.search(LONG_DATE_PATTERN, word) \
                 or re.search(SHORT_DATE_PATTERN, word) \
                 or re.search(MONTH_YEAR_PATTERN, word):
-            t = Token.VALUE, word
+            tup = Token.VALUE, word
         elif re.search(FLOAT_PATTERN, word):
-            t = Token.VALUE, float(word)
+            tup = Token.VALUE, float(word)
         elif re.search(INT_PATTERN, word):
-            t = Token.VALUE, int(word)
+            tup = Token.VALUE, int(word)
         elif re.search(FILE_PATTERN, word):
-            t = Token.FILE, word
+            tup = Token.FILE, word
         elif re.search(NAME_PATTERN, word):
-            t = Token.NAME, word
+            tup = Token.NAME, word
         else:
-            t = Token.INVALID, word
-        return t
+            tup = Token.INVALID, word
+        return tup
 
     def next_token(self) -> tuple[Token, Union[str, int, float]]:
         """
@@ -150,16 +155,16 @@ class Lexer:
 
         # Check for unterminated string
         if self.state == State.STRING:
-            return Token.UNTERMINATED, ''
+            return Token.INVALID, f'{UNTERMINATED_STRING} [{word[0:10]}...]'
         else:
             return Token.EOS, ''
 
 
 if __name__ == '__main__':
     lx = Lexer()
-    lx.input('item "this is a string" list 20/10/2022 07/24 3.4 7 +')
+    lx.input('item "this is a string list 20/10/2022 07/24 3.4 7 +')
     while True:
         t, v = lx.next_token()
         print(t, v)
-        if t in [Token.EOS, Token.UNTERMINATED, Token.INVALID]:
+        if t in [Token.EOS, Token.INVALID]:
             break
