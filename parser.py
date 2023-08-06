@@ -1,3 +1,4 @@
+from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
 from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_INPUT_OUTPUT
 from typing import Union
@@ -15,20 +16,15 @@ class Parser:
 
     def __init__(self):
         self.lexer = Lexer()
-        self.command = ''
-        self.cmd = CommandProcessor()
+        self.cmd = ''
+        self.cp = CommandProcessor()
 
-    def error(self, error_message: str, token: Token, value: Union[int, float, str]):
-        if token == Token.UNTERMINATED:
-            print(f'Unterminated string {self.command}')
-        elif token == Token.INVALID:
+    @staticmethod
+    def error(error_message: str, token: Token, value: Union[int, float, str]):
+        if token == Token.INVALID:
             print(f'Invalid token {token} {value}')
         else:
             print(f'{error_message} {token} {value}')
-
-    # @staticmethod
-    # def invalid(token: Token) -> bool:
-    #     return token in [Token.INVALID, Token.UNTERMINATED]
 
     def get_token(self) -> tuple[Token, Union[str, int, float]]:
         token, value = self.lexer.next_token()
@@ -66,33 +62,46 @@ class Parser:
 
     def input_output_command(self, token: Token):
         """
-        input_output_command: READ [file_name] |
+        input_output_command: CREATE [file_name] |
+                              READ [file_name] |
                               WRITE |
                               export file_name
         """
         trace('input_output_command', token)
-        if token == Token.READ:
-            token, value = self.get_token()
-            if token == Token.EOS:
-                todo('read, no file name')
-                # self.cmd.read_database()
-            elif token == Token.FILE:
-                todo('read', value)
-                # self.cmd.read_database(value)
+        if token in [Token.CREATE, Token.READ]:
+
+            # Get file name
+            tok, file_name = self.get_token()
+            if tok == Token.EOS:
+                file_name = DEFAULT_DATABASE_NAME
+                trace('no file name', file_name)
+            elif tok == Token.FILE:
+                trace('file name', file_name)
             else:
-                self.error('bad file name', token, value)
+                self.error('bad file name', token, file_name)
+                return
+
+            # Run command
+            if token == Token.READ:
+                todo('read', file_name)
+            elif token == Token.CREATE:
+                todo('create', file_name)
+            else:
+                self.error('bad command', token)
+
         elif token == Token.WRITE:
             trace('input_output', 'write')
+
         elif token == Token.EXPORT:
-            token, value = self.get_token()
-            trace('input_output', 'export', token, value)
-            if token == Token.FILE:
-                todo(''
-                     '', 'export', token, value)
+            # Get file name and run command
+            tok, file_name = self.get_token()
+            trace('input_output', 'export', tok, file_name)
+            if tok == Token.FILE:
+                todo('export', file_name)
             else:
-                self.error('missing file name', token, value)
+                self.error('missing file name', token, file_name)
         else:
-            self.error('Unknown i/o command', token, '')
+            self.error('Unknown i/o command', token, '')  # should never get here
 
     def subcommand(self) -> tuple[Token, Union[str, int, float]]:
         """
@@ -106,9 +115,9 @@ class Parser:
         else:
             return Token.INVALID, value
 
-    def process_command(self):
+    def command(self):
         """
-        A command can be either an action or i/o command
+        A command can be either an action or and input/output command
         command : action_command |
                   input_output_command
         """
@@ -132,18 +141,18 @@ class Parser:
         Parse and execute command
         :param command: command to parse/execute
         """
-        self.command = command.strip()
-        self.lexer.input(self.command)
-        self.process_command()
+        self.cmd = command.strip()
+        self.lexer.input(self.cmd)
+        self.command()
 
 
 if __name__ == '__main__':
     parser = Parser()
     while True:
         try:
-            cmd = input('db> ')
-            cmd = cmd.strip()
-            if len(cmd) > 0:
-                parser.execute(cmd)
+            input_command = input('db> ')
+            input_command = input_command.strip()
+            if len(input_command) > 0:
+                parser.execute(input_command)
         except (KeyboardInterrupt, EOFError):
             break
