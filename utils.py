@@ -66,5 +66,6 @@ def get_password() -> str:
 
 
 if __name__ == '__main__':
-    print(get_password())
+    p = get_password()
+    print(f'[{p}], {len(p)}')
     pass
