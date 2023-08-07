@@ -148,20 +148,20 @@ class Database:
         :return: list of items matching the search criteria
         """
         output_list = []
-        cp = re.compile(pattern, flags=re.IGNORECASE)
+        compiled_pattern = re.compile(pattern, flags=re.IGNORECASE)
         for item in self.item_collection.next():
             assert isinstance(item, Item)
-            if item_name and cp.search(item.name):
+            if item_name and compiled_pattern.search(item.name):
                 output_list.append(item)
             if field_name or field_value:
                 for field in item.next_field():
-                    if field_name and cp.search(field.name):
+                    if field_name and compiled_pattern.search(field.name):
                         output_list.append(item)
-                    if field_value and cp.search(field.value):
+                    if field_value and compiled_pattern.search(field.value):
                         output_list.append(item)
             if tag and pattern in item.tags:
                 output_list.append(item)
-            if note and cp.search(item.note):
+            if note and compiled_pattern.search(item.note):
                 output_list.append(item)
 
         return output_list
