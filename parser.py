@@ -1,7 +1,7 @@
 from typing import Union
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_INPUT_OUTPUT
+from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_INPUT_OUTPUT, LEX_MISC_COMMANDS
 
 
 def trace(label: str, *args):
@@ -75,6 +75,7 @@ class Parser:
                               READ [file_name] |
                               WRITE |
                               export file_name
+        :param token: next token
         """
         trace('input_output_command', token)
         if token in [Token.CREATE, Token.READ]:
@@ -113,6 +114,19 @@ class Parser:
         else:
             self.error('Unknown i/o command', token, '')  # should never get here
 
+    def misc_command(self, token: Token) -> bool:
+        """
+        misc_command: DUMP | QUIT
+        :param token: next token
+        :return: True if QUIT command, False otherwise
+        """
+        if token == Token.DUMP:
+            self.cp.dump_database()
+        elif token == Token.QUIT:
+            todo('quit', token)
+            return True
+        return False
+
     def subcommand(self) -> tuple[Token, Union[str, int, float]]:
         """
         Check whether the next token is a subcommand
@@ -129,11 +143,13 @@ class Parser:
         """
         A command can be either an action or and input/output command
         command : action_command |
-                  input_output_command
+                  input_output_command |
+                  misc_command
         :return True if the QUIT command is received, False otherwise
         """
         token, value = self.lexer.next_token()
         trace('command', token, value)
+        quit_flag = False
         if token in LEX_ACTIONS:
             sub_token, value = self.subcommand()
             if sub_token != Token.INVALID:
@@ -142,16 +158,13 @@ class Parser:
                 self.error('Invalid subcommand', sub_token, value)
         elif token in LEX_INPUT_OUTPUT:
             self.input_output_command(token)
-        elif token == Token.DUMP:
-            self.cp.dump_database()
-        elif token == Token.QUIT:
-            todo('quit', token)
-            return True
+        elif token in LEX_MISC_COMMANDS:
+            quit_flag = self.misc_command(token)
         elif token == Token.EOS:
             pass
         else:
             self.error('Unknown command', token, value)
-        return False
+        return quit_flag
 
     def execute(self, command: str):
         """
