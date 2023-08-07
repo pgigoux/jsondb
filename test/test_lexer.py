@@ -24,6 +24,9 @@ def test_keywords():
     assert lx.token('ren') == (Token.RENAME, 'ren')
     assert lx.token('del') == (Token.DELETE, 'del')
 
+    assert lx.token('dump') == (Token.DUMP, 'dump')
+    assert lx.token('quit') == (Token.QUIT, 'quit')
+
 
 def test_expressions():
     lx = Lexer()

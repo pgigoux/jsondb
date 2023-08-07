@@ -39,6 +39,7 @@ class Token(Enum):
     VALUE = auto()
     STRING = auto()
     # misc
+    DUMP = auto()
     QUIT = auto()
     EOS = auto()
     # error
@@ -50,6 +51,7 @@ LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
 LEX_INPUT_OUTPUT = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT]
 LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.SEARCH, Token.PRINT,
                    Token.COUNT, Token.RENAME, Token.DELETE, Token.EDIT]
+LEX_MISC_COMMANDS = [Token.DUMP, Token.QUIT]
 
 
 # DFA states
@@ -78,6 +80,7 @@ class Lexer:
             'create': Token.CREATE, 'read': Token.READ, 'write': Token.WRITE, 'export': Token.EXPORT,
             'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
             'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
+            'dump': Token.DUMP, 'quit': Token.QUIT,
             # aliases
             'save': Token.WRITE, 'ren': Token.RENAME, 'del': Token.DELETE
         }
