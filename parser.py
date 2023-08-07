@@ -115,11 +115,12 @@ class Parser:
         else:
             return Token.INVALID, value
 
-    def command(self):
+    def command(self) -> bool:
         """
         A command can be either an action or and input/output command
         command : action_command |
                   input_output_command
+        :return True if the QUIT command is received, False otherwise
         """
         token, value = self.lexer.next_token()
         trace('command', token, value)
@@ -131,10 +132,16 @@ class Parser:
                 self.error('Invalid subcommand', sub_token, value)
         elif token in LEX_INPUT_OUTPUT:
             self.input_output_command(token)
+        elif token == Token.DUMP:
+            todo('dump', token)
+        elif token == Token.QUIT:
+            todo('quit', token)
+            return True
         elif token == Token.EOS:
             pass
         else:
             self.error('Unknown command', token, value)
+        return False
 
     def execute(self, command: str):
         """
@@ -143,7 +150,7 @@ class Parser:
         """
         self.cmd = command.strip()
         self.lexer.input(self.cmd)
-        self.command()
+        return self.command()
 
 
 if __name__ == '__main__':
@@ -153,6 +160,9 @@ if __name__ == '__main__':
             input_command = input('db> ')
             input_command = input_command.strip()
             if len(input_command) > 0:
-                parser.execute(input_command)
+                if parser.execute(input_command):
+                    # quit received
+                    print('Exiting..')
+                    break
         except (KeyboardInterrupt, EOFError):
             break
