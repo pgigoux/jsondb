@@ -1,7 +1,7 @@
+from typing import Union
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
 from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_INPUT_OUTPUT
-from typing import Union
 
 
 def trace(label: str, *args):
@@ -44,6 +44,15 @@ class Parser:
         item : ITEM subcommand
         """
         trace('item_command', token)
+        if token == Token.LIST:
+            self.cp.list_items()
+        elif token == Token.PRINT:
+            tok, uid = self.get_token()
+            trace('print', tok, uid)
+            if tok == Token.UID:
+                self.cp.print_item(uid)
+            else:
+                print('expected uid')
 
     def action_command(self, cmd_token: Token, sub_token: Token):
         """
@@ -84,6 +93,7 @@ class Parser:
             # Run command
             if token == Token.READ:
                 todo('read', file_name)
+                self.cp.read_database(file_name)
             elif token == Token.CREATE:
                 todo('create', file_name)
             else:
@@ -133,7 +143,7 @@ class Parser:
         elif token in LEX_INPUT_OUTPUT:
             self.input_output_command(token)
         elif token == Token.DUMP:
-            todo('dump', token)
+            self.cp.dump_database()
         elif token == Token.QUIT:
             todo('quit', token)
             return True
