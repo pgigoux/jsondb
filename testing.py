@@ -85,7 +85,8 @@ def random_email() -> str:
     Return a random email of the form 'jdoe<number>@<server>'
     :return: random email address
     """
-    return f'jdoe{str(random_int(max_int=5000))}@{RANDOM_EMAIL_SERVERS[random_int(max_int=len(RANDOM_EMAIL_SERVERS) - 1)]}'
+    return f'jdoe{str(random_int(max_int=5000))}@' + \
+           f'{RANDOM_EMAIL_SERVERS[random_int(max_int=len(RANDOM_EMAIL_SERVERS) - 1)]}'
 
 
 def random_password():
@@ -94,7 +95,9 @@ def random_password():
     :return: random passord
     """
     n_max = len(RANDOM_WORDS) - 1
-    return f'{RANDOM_WORDS[random_int(max_int=n_max)]}-{RANDOM_WORDS[random_int(max_int=n_max)]}-{RANDOM_WORDS[random_int(max_int=n_max)]}'
+    return f'{RANDOM_WORDS[random_int(max_int=n_max)]}-' + \
+           f'{RANDOM_WORDS[random_int(max_int=n_max)]}-' + \
+           f'{RANDOM_WORDS[random_int(max_int=n_max)]}'
 
 
 def random_field() -> Field:
