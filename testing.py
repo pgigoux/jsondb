@@ -2,6 +2,15 @@ import random
 import string
 from items import Item, Field, FieldCollection
 
+RANDOM_WORDS = ['cow', 'horse', 'sheep', 'duck', 'chicken', 'donkey',
+                'apple', 'orange', 'banana', 'tomato', 'avocado', 'parsley',
+                'proton', 'neutron', 'electron', 'muon', 'tau', 'neutrino']
+
+RANDOM_EMAIL_SERVERS = ['gmail.com', 'hotmail.com', 'yahoo.com', 'yahoo.es', 'outlook.com']
+
+RANDOM_WEB_SERVERS = ['www.nowhere.com', 'www.somewhere.com', 'www.somebody.com', 'www.nobody.com',
+                      'www.something.com', 'www.nothing.com', 'www.top.com', 'www.bottom.com']
+
 
 def random_bool() -> bool:
     """
@@ -40,7 +49,7 @@ def random_string(prefix='', min_length=2, max_length=20):
     :return: random string value
     """
     return prefix + ''.join(
-        random.choice(string.ascii_letters) for i in range(random.randrange(min_length, max_length)))
+        random.choice(string.ascii_letters) for _ in range(random.randrange(min_length, max_length)))
 
 
 def random_string_list(prefix='', min_elements=1, max_elements=5) -> list:
@@ -61,6 +70,31 @@ def random_list_element(input_list: list) -> int | str:
     :return: 
     """
     return input_list[random.randrange(len(input_list))]
+
+
+def random_web_server() -> str:
+    """
+    Return random a web server name from a list of choices
+    :return: random web server
+    """
+    return f'https://{RANDOM_WEB_SERVERS[random_int(max_int=len(RANDOM_WEB_SERVERS) - 1)]}'
+
+
+def random_email() -> str:
+    """
+    Return a random email of the form 'jdoe<number>@<server>'
+    :return: random email address
+    """
+    return f'jdoe{str(random_int(max_int=5000))}@{RANDOM_EMAIL_SERVERS[random_int(max_int=len(RANDOM_EMAIL_SERVERS) - 1)]}'
+
+
+def random_password():
+    """
+    Return a random password of the for <word>-<word>-<word>
+    :return: random passord
+    """
+    n_max = len(RANDOM_WORDS) - 1
+    return f'{RANDOM_WORDS[random_int(max_int=n_max)]}-{RANDOM_WORDS[random_int(max_int=n_max)]}-{RANDOM_WORDS[random_int(max_int=n_max)]}'
 
 
 def random_field() -> Field:
@@ -103,6 +137,9 @@ def random_item() -> Item:
 
 
 if __name__ == '__main__':
+    print('email', random_email())
+    print('password', random_password())
+    print('web', random_web_server())
     print('bool', random_bool())
     print('int', random_int())
     print('string', random_string())
