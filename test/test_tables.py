@@ -78,14 +78,13 @@ def test_table():
     assert tt.get_attributes('4000') == {'value': 4}
 
     # Counters
-    tt.increment('3000', 3)
-    assert tt.count('3000') == 3
-    tt.increment('3000')
-    assert tt.count('3000') == 4
-
+    tt.increment(uid='3000', n=3)
+    assert tt.count(uid='3000') == 3
+    tt.increment(name='four')
+    assert tt.count(name='four') == 1
     with pytest.raises(KeyError):
-        tt.increment('2000')
-        _ = tt.count('2000')
+        tt.increment(uid='2000')
+        _ = tt.count(uid='2000')
 
 
 def test_tag_table():

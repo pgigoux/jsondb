@@ -125,18 +125,48 @@ class Table:
         else:
             raise KeyError(f'{old_name} not in the table')
 
-    def count(self, uid: str):
+    # def count(self, uid: str):
+    #     if uid in self.uid_dict:
+    #         return self.count_dict[uid]
+    #     else:
+    #         raise KeyError(f'uid {uid} not in the table')
+
+    def count(self, name='', uid='') -> int:
+        """
+        Return the element count
+        The table element can be referenced by name or uid
+        :param name: name
+        :param uid: unique identifier
+        :return: element count
+        """
+        if name and name in self.name_dict:
+            uid = self.name_dict[name]
         if uid in self.uid_dict:
             return self.count_dict[uid]
         else:
             raise KeyError(f'uid {uid} not in the table')
 
-    def increment(self, uid: str, n=1):
+    # def increment(self, uid: str, n=1):
+    #     """
+    #     Increment the counter
+    #     :param uid: unique identifier
+    #     :param n: counter increment
+    #     """
+    #     if uid in self.uid_dict:
+    #         self.count_dict[uid] += n
+    #     else:
+    #         raise KeyError(f'uid {uid} not in the table')
+
+    def increment(self, name='', uid='', n=1):
         """
         Increment the counter
+        The table element can be referenced by name or uid
+        :param name: name
         :param uid: unique identifier
         :param n: counter increment
         """
+        if name and name in self.name_dict:
+            uid = self.name_dict[name]
         if uid in self.uid_dict:
             self.count_dict[uid] += n
         else:
@@ -180,7 +210,8 @@ class Table:
             print(margin + 'Table:')
         for name in self.name_dict:
             uid = self.name_dict[name]
-            print(margin + f'\t{KEY_NAME}=\'{name}\', {KEY_UID}={uid}, attr={self.attr_dict[uid]}')
+            print(margin + f'\t{KEY_NAME}=\'{name}\', {KEY_UID}={uid}, count={self.count_dict[uid]}, '
+                           f'attr={self.attr_dict[uid]}')
 
 
 class TagTable(Table):
@@ -189,7 +220,21 @@ class TagTable(Table):
         super().__init__('Tags')
 
     def add(self, tag_name: str, uid=''):
+        """
+        Add tag to table
+        :param tag_name: tag name
+        :param uid: unique identifier (optional)
+        """
         super().add(name=tag_name, uid=uid)
+
+    def next(self) -> tuple[str, str, int]:
+        """
+        Return next field in the table
+        :return: tuple with the uid, name and count
+        """
+        for name in sorted(self.name_dict):
+            uid = self.name_dict[name]
+            yield uid, name, self.count(uid=uid)
 
 
 class FieldTable(Table):
@@ -198,17 +243,40 @@ class FieldTable(Table):
         super().__init__('Fields')
 
     def add(self, name: str, sensitive=False, uid=''):
+        """
+        Add field to the table
+        :param name: field name
+        :param sensitive: sensitive?
+        :param uid: unique identifier
+        """
         super().add(name=name, uid=uid, sensitive=sensitive)
 
     def is_sensitive(self, uid: str):
+        """
+        Check whether a field is sensitive
+        :param uid: unique identifier
+        :return: True if sensitive, False otherwise
+        """
         return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
+
+    def next(self) -> tuple[str, str, int, bool]:
+        """
+        Return next field in the table
+        :return: tuple with the uid, name, count and sensitive flag
+        """
+        for name in sorted(self.name_dict):
+            uid = self.name_dict[name]
+            yield uid, name, self.count(uid=uid), self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
 
 
 if __name__ == '__main__':
     t = Table()
     t.add(name='one', uid=1, sensitive=True, value='hello')
     t.add(name='two', value=6)
+    t.increment(name='one')
     t.dump()
+
+    exit(0)
 
     print('-' * 10)
     print(t.get_attributes('1'))
@@ -225,3 +293,11 @@ if __name__ == '__main__':
     print('sensitive', ft.is_sensitive('6'))
     print(ft.export())
     ft.dump()
+
+    print('--')
+    for a,b,c,d in ft.next():
+        print(a,b,c,d)
+
+    print('--')
+    for a, b, c, in tg.next():
+        print(a, b, c)
