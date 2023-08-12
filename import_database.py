@@ -80,6 +80,10 @@ from items import FieldCollection, Item, Field
 from utils import trimmed_string, get_password
 from common import DEFAULT_DATABASE_NAME
 
+# Files used to save tables into separate files
+FIELD_FILE_NAME = 'fields.csv'
+TAG_FILE_NAME = 'tags.csv'
+
 
 def process_field(field: dict) -> tuple:
     """
@@ -114,12 +118,26 @@ def process_field(field: dict) -> tuple:
         f_name = 'Host name'
     elif f_name == 'E-mail':
         f_name = 'Email'
-    elif f_name == 'Expiry date':
-        f_name = 'Expiration date'
+    elif f_name in ['Expiry date', 'Expiration date', 'Valid']:
+        f_name = 'Valid until'
     elif f_name == 'MAC/Airport #':
-        f_name = 'MAC #'
+        f_name = 'MAC'
+    elif f_name == 'Server/IP address':
+        f_name = 'IP address'
+    elif f_name == 'Website':
+        f_name = 'URL'
+    elif f_name == 'Serial':
+        f_name = 'Serial number'
+    elif f_name == 'Login name':
+        f_name = 'Login'
+    elif 'Security Answer' in f_name:
+        f_name = f_name.replace('Security Answer', 'Security answer')
+    elif 'Securiry' in f_name:
+        f_name = f_name.replace('Securiry', 'Security')
     elif 'Security answer' in f_name:
         f_sensitive = True
+
+    f_name = f_name.replace(' ', '_')
 
     return f_name, f_value, f_sensitive
 
@@ -157,13 +175,14 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
     :param item_list: list of items
     :param encrypt_key: key used to encrypt sensitive values (optional)
     """
+    # found = False
     for item in item_list:
 
         # An item should be a dictionary
         assert isinstance(item, dict)
 
         # Initialize item data
-        name = ''
+        item_name = ''
         note = ''
         time_stamp = ''
         folder_list = []
@@ -174,7 +193,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
         for key in item.keys():
             value = item[key]
             if key == 'title':
-                name = trimmed_string(value)
+                item_name = trimmed_string(value)
             elif key == 'createdAt':
                 time_stamp = int(trimmed_string(str(value)))
             elif key == 'note':
@@ -182,6 +201,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
             elif key == 'folders':  # list
                 for folder in value:
                     if db.tag_table.get_name(folder):
+                        db.tag_table.increment(uid=folder)
                         folder_list.append(folder)
             elif key == 'fields':  # list
                 for field in value:
@@ -190,16 +210,41 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
                         if f_sensitive and encrypt_key is not None:
                             f_value = encrypt_key.encrypt_str2str(str(f_value))
                         field_collection.add(Field(f_name, f_value, f_sensitive))
+                        # if 'Network_password' in f_name:
+                        #     found = True
+                        db.field_table.increment(name=f_name)
                     except ValueError:
                         # can be safely ignored
                         continue
 
+        # if found:
+        #     print(item_name)
+        #     found = False
+
         # An item must have at least a name, a time stamp and at least one field
-        if name and time_stamp and len(field_collection) > 0:
-            item = Item(name, folder_list, note, time_stamp, field_collection)
+        if item_name and time_stamp and len(field_collection) > 0:
+            item = Item(item_name, folder_list, note, time_stamp, field_collection)
             db.item_collection.add(item)
         else:
             raise ValueError('incomplete item')
+
+
+def save_tables(db: Database):
+    """
+    Save the field and tag tables to csv files
+    :param db: database
+    """
+    # Field table
+    with open(FIELD_FILE_NAME, 'w') as f:
+        for f_name, f_uid, f_count, f_sensitive in db.field_table.next():
+            f.write(f'{f_name},{f_uid},{str(f_count)},{f_sensitive}\n')
+        f.close()
+
+    # Tag table
+    with open(TAG_FILE_NAME, 'w') as f:
+        for t_name, t_uid, t_count in db.tag_table.next():
+            f.write(f'{t_name},{t_uid},{str(t_count)}\n')
+        f.close()
 
 
 def import_database(input_file_name: str, output_file_name: str, password: str, dump_database=False):
@@ -223,6 +268,7 @@ def import_database(input_file_name: str, output_file_name: str, password: str, 
     import_tags(db, json_data['folders'])
     import_fields(db, json_data['items'])
     import_items(db, json_data['items'], db.crypt_key)
+    save_tables(db)
 
     # Write file to disk
     db.write()
