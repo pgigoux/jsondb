@@ -245,7 +245,7 @@ class Item(Element):
         :return: string representation of the item
         """
         field_list = [str(field) for field in self.field_collection.next()]
-        return f'uid={self.uid}, name={self.name}, tags={self.tags}, note={self.note}, time={self.time_stamp}, ' +\
+        return f'uid={self.uid}, name={self.name}, tags={self.tags}, note={self.note}, time={self.time_stamp}, ' + \
                f'fields={field_list}'
 
     def get_name(self) -> str:
