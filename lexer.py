@@ -49,8 +49,8 @@ class Token(Enum):
 # Token classes
 LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
 LEX_INPUT_OUTPUT = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT]
-LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.SEARCH, Token.PRINT,
-                   Token.COUNT, Token.RENAME, Token.DELETE, Token.EDIT]
+LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.DUMP, Token.SEARCH, Token.COUNT,
+                   Token.ADD, Token.RENAME, Token.DELETE, Token.EDIT]
 LEX_MISC_COMMANDS = [Token.DUMP, Token.QUIT]
 
 
