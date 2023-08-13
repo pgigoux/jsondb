@@ -1,6 +1,6 @@
 from db import Database, DEFAULT_DATABASE_NAME
-from items import Item
-from utils import get_password
+from items import Item, Field
+from utils import get_password, timestamp_to_time
 
 
 class CommandProcessor:
@@ -8,6 +8,10 @@ class CommandProcessor:
     def __init__(self):
         self.file_name = ''
         self.db = None
+
+    @staticmethod
+    def print_line():
+        print(u'\u2015' * 70)
 
     def db_loaded(self, msg_flag=True) -> bool:
         """
@@ -57,7 +61,9 @@ class CommandProcessor:
         """
         if self.db_loaded():
             assert isinstance(self.db, Database)
+            self.print_line()
             self.db.dump()
+            self.print_line()
 
     def list_items(self):
         if self.db_loaded():
@@ -68,11 +74,45 @@ class CommandProcessor:
 
     def print_item(self, uid: str):
         if self.db_loaded():
+            self.print_line()
+            assert isinstance(self.db, Database)
+            if uid in self.db.item_collection:
+                try:
+                    item = self.db.item_collection.get(uid)
+                    assert isinstance(item, Item)
+                    print(f'UID:  {item.get_id()}')
+                    print(f'Name: {item.get_name()}')
+                    print(f'Date: {timestamp_to_time(item.get_timetamp())}')
+                    tag_list = [self.db.tag_table.get_name(x) for x in item.get_tags()]
+                    print(f'Tags: {tag_list}')
+                    for field in item.field_collection.next():
+                        assert isinstance(field, Field)
+                        sensitive = field.get_sensitive()
+                        if sensitive and self.db.crypt_key:
+                            field_value = self.db.crypt_key.decrypt_str2str(field.get_value())
+                            mark = '(*)'
+                        else:
+                            field_value = field.get_value()
+                            mark = '   '
+                        print(f'   {field.get_id()} {mark} {field.get_name()} {field_value}')
+                    print('Note:')
+                    if len(item.get_note()) > 0:
+                        print(f'{item.get_note()}')
+                except Exception as e:
+                    print(f'error: {repr(e)}')
+                self.print_line()
+            else:
+                print('item not found')
+
+    def dump_item(self, uid: str):
+        if self.db_loaded():
             assert isinstance(self.db, Database)
             if uid in self.db.item_collection:
                 item = self.db.item_collection.get(uid)
                 assert isinstance(item, Item)
+                self.print_line()
                 item.dump()
+                self.print_line()
             else:
                 print('item not found')
 
@@ -81,6 +121,7 @@ class CommandProcessor:
             assert isinstance(self.db, Database)
             self.db.search()
             pass
+
 
 if __name__ == '__main__':
     cp = CommandProcessor()
