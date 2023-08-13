@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 from crypt import Crypt
 from utils import get_uid, filter_control_characters
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
@@ -144,6 +144,15 @@ class Field(Element):
         """
         return f'{self.name}, {self.value}, {self.sensitive}, {self.uid}'
 
+    def get_name(self) -> str:
+        return self.name
+
+    def get_value(self) -> Union[str, int, float]:
+        return self.value
+
+    def get_sensitive(self) -> bool:
+        return self.sensitive
+
     def get_id(self) -> str:
         """
         Return the field unique identifier
@@ -217,6 +226,18 @@ class Item(Element):
         field_list = [str(f) for f in self.field_collection.next()]
         return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {field_list}'
 
+    def get_name(self) -> str:
+        return self.name
+
+    def get_tags(self) -> list:
+        return self.tags
+
+    def get_note(self) -> str:
+        return self.note
+
+    def get_timetamp(self):
+        return self.time_stamp
+
     def get_id(self):
         """
         Return the item unique identifier
@@ -279,14 +300,14 @@ class ItemCollection(Collection):
             d[item_uid] = item.export(crypt=crypt)
         return d
 
-    def dump(self, indent=0):
+    def dump(self, raw=True, indent=0):
         """
         Dump collection contents in a human readable form
         :param indent: indentation level
         """
         print('Items:')
         for uid in self.data:
-            self.data[uid].dump(indent=indent + 1)
+            self.data[uid].dump(raw=raw, indent=indent + 1)
 
 
 if __name__ == '__main__':
