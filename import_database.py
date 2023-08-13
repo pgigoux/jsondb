@@ -84,6 +84,9 @@ from common import DEFAULT_DATABASE_NAME
 FIELD_FILE_NAME = 'fields.csv'
 TAG_FILE_NAME = 'tags.csv'
 
+# Default tag for those items that do not have one
+TAG_DEFAULT = 'default'
+
 
 def process_field(field: dict) -> tuple:
     """
@@ -139,7 +142,23 @@ def process_field(field: dict) -> tuple:
 
     f_name = f_name.replace(' ', '_')
 
-    return f_name, f_value, f_sensitive
+    return f_name.lower(), f_value, f_sensitive
+
+
+def process_tag(name: str, uid: str) -> tuple[str, str]:
+    """
+    Rename some tags
+    :param name: tag name
+    :param uid: tag uid
+    :return: tuple with tag name and uid
+    """
+    if name == 'Bank and Cards':
+        name = 'Finance'
+    elif name == 'Education and blogs':
+        name = 'Education'
+    elif name == 'Other Cards':
+        name = 'Other'
+    return name.lower(), uid
 
 
 def import_tags(db: Database, folder_list: list):
@@ -150,7 +169,9 @@ def import_tags(db: Database, folder_list: list):
     :return:
     """
     for folder in folder_list:
-        db.tag_table.add(folder['title'], folder['uuid'])
+        t_name, t_uid = process_tag(folder['title'], folder['uuid'])
+        db.tag_table.add(t_name, t_uid)
+    db.tag_table.add(TAG_DEFAULT)
 
 
 def import_fields(db: Database, item_list: list):
@@ -199,6 +220,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
             elif key == 'note':
                 note = value
             elif key == 'folders':  # list
+                # print([db.tag_table.get_name(x) for x in value])
                 for folder in value:
                     if db.tag_table.get_name(folder):
                         db.tag_table.increment(uid=folder)
@@ -220,6 +242,11 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
         # if found:
         #     print(item_name)
         #     found = False
+
+        # Assign a default tag list for items with no tag
+        if len(folder_list) == 0:
+            folder_list = [db.tag_table.get_uid(TAG_DEFAULT)]
+            db.tag_table.increment(name=TAG_DEFAULT)
 
         # An item must have at least a name, a time stamp and at least one field
         if item_name and time_stamp and len(field_collection) > 0:
