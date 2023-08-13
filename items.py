@@ -80,12 +80,23 @@ class Collection:
         else:
             raise KeyError(f'{key} does not exist')
 
+    def sort_key(self, key: str):
+        """
+        Function called by next() to sort the keys
+        It should be redefined in the subclasses
+        :param key:
+        :return: string used to sort
+        """
+        return ''
+
     def next(self) -> Generator[Element, None, None]:
         """
         Iterate over all elements in the collection
+        The elements are sorted by name
         :return: next element
         """
-        for key in self.data:
+        sorted_keys = sorted(self.keys(), key=self.sort_key)
+        for key in sorted_keys:
             yield self.data[key]
 
     def add(self, element: Element):
@@ -142,7 +153,7 @@ class Field(Element):
         """
         :return: string representation of the field
         """
-        return f'{self.name}, {self.value}, {self.sensitive}, {self.uid}'
+        return f'uid={self.uid}, name={self.name}, value={self.value}, sensitive={self.sensitive}'
 
     def get_name(self) -> str:
         return self.name
@@ -185,6 +196,16 @@ class Field(Element):
 
 class FieldCollection(Collection):
 
+    def sort_key(self, key: str):
+        """
+        Auxiliary routine called by next() to sort the field keys by field name
+        :param key: key
+        :return: field name for that key
+        """
+        field = self.get(key)
+        assert isinstance(field, Field)
+        return field.get_name()
+
     def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Export the item collection as a dictionary
@@ -223,8 +244,9 @@ class Item(Element):
         """
         :return: string representation of the item
         """
-        field_list = [str(f) for f in self.field_collection.next()]
-        return f'{self.name}, {self.tags}, {self.note}, {self.time_stamp}, {self.uid}, {field_list}'
+        field_list = [str(field) for field in self.field_collection.next()]
+        return f'uid={self.uid}, name={self.name}, tags={self.tags}, note={self.note}, time={self.time_stamp}, ' +\
+               f'fields={field_list}'
 
     def get_name(self) -> str:
         return self.name
@@ -235,7 +257,7 @@ class Item(Element):
     def get_note(self) -> str:
         return self.note
 
-    def get_timetamp(self):
+    def get_timestamp(self):
         return self.time_stamp
 
     def get_id(self):
@@ -286,6 +308,16 @@ class Item(Element):
 
 class ItemCollection(Collection):
 
+    def sort_key(self, key: str):
+        """
+        Auxiliary routine called by next() to sort the item keys by item name
+        :param key: key
+        :return: item name for that key
+        """
+        item = self.get(key)
+        assert isinstance(item, Item)
+        return item.get_name()
+
     def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Export the item collection as a dictionary
@@ -311,33 +343,31 @@ class ItemCollection(Collection):
 
 
 if __name__ == '__main__':
-    print('-' * 30)
     fc1 = FieldCollection()
     fc1.add(Field('one', 1, True))
     fc1.add(Field('two', '2', False))
-    print(fc1)
-    print(fc1.export())
-    fc1.dump()
 
-    print('-' * 30)
     fc2 = FieldCollection()
     fc2.add(Field('number', 1, True))
     fc2.add(Field('letter', 'b', False))
     fc2.add(Field('digit', '2', False))
-    print(fc2)
-    print(fc2.export())
-    fc2.dump()
 
-    print('-' * 30)
-    i1 = Item('it1', ['a', 'b'], 'note1', 1234, fc1)
-    print(i1)
-    print(i1.export())
-    i1.dump()
+    i1 = Item('one', ['a', 'b'], 'note 1', 12345, fc1)
+    i2 = Item('two', ['c', 'd'], 'note 2', 3456, fc2)
+    i3 = Item('three', ['e', 'f'], 'note 3', 68966, fc1)
+    i4 = Item('four', ['e', 'f'], 'note 3', 16443, fc2)
 
-    print('-' * 30)
-    i2 = Item('it2', ['c', 'd', 'e'], 'note2', 1000, fc2)
-    print(i2)
-    print(i2.export())
-    i2.dump()
+    ic = ItemCollection()
+    ic.add(i1)
+    ic.add(i2)
+    ic.add(i3)
+    ic.add(i4)
+    ic.dump()
 
-    pass
+    for it in ic.next():
+        print(it)
+
+    for f in fc2.next():
+        print(f)
+
+    exit(0)
