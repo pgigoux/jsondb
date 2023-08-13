@@ -5,4 +5,5 @@ __pycache__
 *.pyc
 *.json
 *.db
-*2023*
+*.csv
+*202*
