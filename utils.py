@@ -3,6 +3,7 @@ import uuid
 import time
 import re
 import getpass
+from datetime import datetime
 
 
 def get_uid() -> str:
@@ -55,6 +56,19 @@ def timestamp() -> str:
     :return: time stamp
     """
     return time.strftime("%Y%m%d%H%M%S", time.gmtime())
+
+
+def timestamp_to_time(time_stamp: int) -> str:
+    """
+    Return the local date and time corresponding to the POSIX timestamp
+    Time is returned as yyyy-mm-dd hh:mm:ss
+    :param time_stamp: time stamp
+    :return: string representation of the time
+    """
+    try:
+        return str(datetime.fromtimestamp(time_stamp))
+    except OverflowError:
+        return 'overflow'
 
 
 def get_password() -> str:
