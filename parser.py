@@ -46,13 +46,17 @@ class Parser:
         trace('item_command', token)
         if token == Token.LIST:
             self.cp.list_items()
-        elif token == Token.PRINT:
+        elif token in [Token.PRINT, Token.DUMP]:
             tok, uid = self.get_token()
-            trace('print', tok, uid)
+            trace('print,dump', tok, uid)
             if tok == Token.UID:
-                self.cp.print_item(uid)
+                if token == Token.PRINT:
+                    self.cp.print_item(uid)
+                else:
+                    self.cp.dump_item(uid)
             else:
                 print('expected uid')
+
 
     def action_command(self, cmd_token: Token, sub_token: Token):
         """
