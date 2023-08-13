@@ -300,14 +300,14 @@ class ItemCollection(Collection):
             d[item_uid] = item.export(crypt=crypt)
         return d
 
-    def dump(self, raw=True, indent=0):
+    def dump(self, indent=0):
         """
         Dump collection contents in a human readable form
         :param indent: indentation level
         """
         print('Items:')
         for uid in self.data:
-            self.data[uid].dump(raw=raw, indent=indent + 1)
+            self.data[uid].dump(indent=indent + 1)
 
 
 if __name__ == '__main__':
