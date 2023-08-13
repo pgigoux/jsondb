@@ -82,7 +82,7 @@ class CommandProcessor:
                     assert isinstance(item, Item)
                     print(f'UID:  {item.get_id()}')
                     print(f'Name: {item.get_name()}')
-                    print(f'Date: {timestamp_to_time(item.get_timetamp())}')
+                    print(f'Date: {timestamp_to_time(item.get_timestamp())}')
                     tag_list = [self.db.tag_table.get_name(x) for x in item.get_tags()]
                     print(f'Tags: {tag_list}')
                     for field in item.field_collection.next():
