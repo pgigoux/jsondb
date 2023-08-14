@@ -40,4 +40,3 @@ if __name__ == '__main__':
         ci.cmdloop()
     except KeyboardInterrupt:
         parser.execute(QUIT_COMMAND)
-        exit(0)
