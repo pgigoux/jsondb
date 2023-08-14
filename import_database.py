@@ -77,7 +77,7 @@ import argparse
 from db import Database
 from crypt import Crypt
 from items import FieldCollection, Item, Field
-from utils import trimmed_string, get_password
+from utils import Uid, trimmed_string, get_password
 from common import DEFAULT_DATABASE_NAME
 
 # Files used to save tables into separate files
@@ -86,6 +86,9 @@ TAG_FILE_NAME = 'tags.csv'
 
 # Default tag for those items that do not have one
 TAG_DEFAULT = 'default'
+
+# Dictionary used to map the tag identifiers in the input file to new ids
+tag_dict = {}
 
 
 def process_field(field: dict) -> tuple:
@@ -170,7 +173,8 @@ def import_tags(db: Database, folder_list: list):
     """
     for folder in folder_list:
         t_name, t_uid = process_tag(folder['title'], folder['uuid'])
-        db.tag_table.add(t_name, t_uid)
+        tag_dict[t_uid] = Uid.get_uid()
+        db.tag_table.add(t_name, tag_dict[t_uid])
     db.tag_table.add(TAG_DEFAULT)
 
 
@@ -220,11 +224,11 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
             elif key == 'note':
                 note = value
             elif key == 'folders':  # list
-                # print([db.tag_table.get_name(x) for x in value])
                 for folder in value:
-                    if db.tag_table.get_name(folder):
-                        db.tag_table.increment(uid=folder)
-                        folder_list.append(folder)
+                    tag_uid = tag_dict[folder]
+                    if db.tag_table.get_name(tag_uid):
+                        db.tag_table.increment(uid=tag_uid)
+                        folder_list.append(tag_uid)
             elif key == 'fields':  # list
                 for field in value:
                     try:
