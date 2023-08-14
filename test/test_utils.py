@@ -1,9 +1,20 @@
-from utils import get_uid, match_strings, trimmed_string, filter_control_characters
+import pytest
+from utils import Uid, match_strings, trimmed_string, filter_control_characters
 
 
 def test_uid():
-    output = get_uid()
-    assert isinstance(output, str)
+
+    Uid.clear()
+    assert Uid.uid_last == Uid.FIRST_UID
+
+    uid = Uid.get_uid()
+    assert isinstance(uid, int)
+    assert uid == Uid.FIRST_UID + 1
+
+    # force a duplicate
+    with pytest.raises(ValueError):
+        Uid.uid_last = Uid.FIRST_UID
+        _ = Uid.get_uid()
 
 
 def test_trimmed_string():
@@ -20,3 +31,7 @@ def test_match_strings():
 def test_filter_control_characters():
     s = '\t\ttext\n\r'
     assert filter_control_characters(s) == '<9><9>text<10><13>'
+
+
+if __name__ == '__main__':
+    test_uid()

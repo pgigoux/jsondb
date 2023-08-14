@@ -1,4 +1,5 @@
-from utils import get_uid
+from typing import Optional
+from utils import Uid
 from common import KEY_NAME, KEY_UID, FIELD_SENSITIVE_KEY
 
 # List of standard table keys. Used to exclude keys from the user defined attributes
@@ -34,7 +35,7 @@ class Table:
         """
         return name in self.name_dict
 
-    def has_uid(self, uid):
+    def has_uid(self, uid: int):
         """
         Determine whether a uid is already in the table
         :param uid: element uid
@@ -42,7 +43,7 @@ class Table:
         """
         return uid in self.uid_dict
 
-    def get_uid(self, name: str) -> str:
+    def get_uid(self, name: str) -> int:
         """
         Get the unique identifier from the name
         :param name: tag name
@@ -54,7 +55,7 @@ class Table:
         else:
             raise KeyError(f'name {name} not in the table')
 
-    def get_name(self, uid: str) -> str:
+    def get_name(self, uid: int) -> str:
         """
         Get the name from the unique identifier
         :param uid: unique identifier
@@ -79,11 +80,13 @@ class Table:
             raise KeyError('no name specified')
 
         # The unique identifier is optional. Generate one if not present.
-        uid = ''
+        uid = None
         if KEY_UID in kwargs:
-            uid = str(kwargs[KEY_UID])
-        if not uid:
-            uid = get_uid()
+            uid = kwargs[KEY_UID]
+        if uid is None:
+            uid = Uid.get_uid()
+        else:
+            uid = int(uid)
 
         # Enter elements to the table
         if name not in self.name_dict:
@@ -94,7 +97,7 @@ class Table:
         else:
             raise KeyError(f'{name} already exists')
 
-    def remove(self, uid):
+    def remove(self, uid: int):
         """
         Remove item from the table
         :param uid: unique identifier
@@ -125,13 +128,7 @@ class Table:
         else:
             raise KeyError(f'{old_name} not in the table')
 
-    # def count(self, uid: str):
-    #     if uid in self.uid_dict:
-    #         return self.count_dict[uid]
-    #     else:
-    #         raise KeyError(f'uid {uid} not in the table')
-
-    def count(self, name='', uid='') -> int:
+    def count(self, name='', uid: Optional[int] = None) -> int:
         """
         Return the element count
         The table element can be referenced by name or uid
@@ -141,23 +138,12 @@ class Table:
         """
         if name and name in self.name_dict:
             uid = self.name_dict[name]
-        if uid in self.uid_dict:
+        if uid is not None and uid in self.uid_dict:
             return self.count_dict[uid]
         else:
             raise KeyError(f'uid {uid} not in the table')
 
-    # def increment(self, uid: str, n=1):
-    #     """
-    #     Increment the counter
-    #     :param uid: unique identifier
-    #     :param n: counter increment
-    #     """
-    #     if uid in self.uid_dict:
-    #         self.count_dict[uid] += n
-    #     else:
-    #         raise KeyError(f'uid {uid} not in the table')
-
-    def increment(self, name='', uid='', n=1):
+    def increment(self, name='', uid: Optional[int] = None, n=1):
         """
         Increment the counter
         The table element can be referenced by name or uid
@@ -167,18 +153,18 @@ class Table:
         """
         if name and name in self.name_dict:
             uid = self.name_dict[name]
-        if uid in self.uid_dict:
+        if uid is not None and uid in self.uid_dict:
             self.count_dict[uid] += n
         else:
             raise KeyError(f'uid {uid} not in the table')
 
-    def get_attributes(self, uid) -> dict:
+    def get_attributes(self, uid: int) -> dict:
         """
         Get the additional attributes for a table entry either by name or uid
         :param uid: unique identifier
         :raise: KeyError
         """
-        if uid and uid in self.uid_dict:
+        if uid in self.uid_dict:
             return self.attr_dict[uid]
         else:
             raise KeyError(f'uid={uid} not in the table')
@@ -219,7 +205,7 @@ class TagTable(Table):
     def __init__(self):
         super().__init__('Tags')
 
-    def add(self, tag_name: str, uid=''):
+    def add(self, tag_name: str, uid=None):
         """
         Add tag to table
         :param tag_name: tag name
@@ -229,8 +215,8 @@ class TagTable(Table):
 
     def next(self) -> tuple[str, str, int]:
         """
-        Return next field in the table
-        :return: tuple with the uid, name and count
+        Return next tag in the table
+        :return: tuple with the tag uid, name and count
         """
         for name in sorted(self.name_dict):
             uid = self.name_dict[name]
@@ -242,7 +228,7 @@ class FieldTable(Table):
     def __init__(self):
         super().__init__('Fields')
 
-    def add(self, name: str, sensitive=False, uid=''):
+    def add(self, name: str, sensitive=False, uid=None):
         """
         Add field to the table
         :param name: field name
@@ -251,7 +237,7 @@ class FieldTable(Table):
         """
         super().add(name=name, uid=uid, sensitive=sensitive)
 
-    def is_sensitive(self, uid: str):
+    def is_sensitive(self, uid: int):
         """
         Check whether a field is sensitive
         :param uid: unique identifier
@@ -276,28 +262,27 @@ if __name__ == '__main__':
     t.increment(name='one')
     t.dump()
 
-    exit(0)
-
     print('-' * 10)
-    print(t.get_attributes('1'))
+    print(t.get_attributes(1))
     print(t.get_attributes(t.get_uid('two')))
 
     tg = TagTable()
     tg.add('abc')
-    tg.add('cdf', uid='1234')
+    tg.add('cdf', uid=1234)
+    tg.increment(name='abc', n=2)
     tg.dump()
 
     ft = FieldTable()
     ft.add('password', sensitive=True, uid='6')
     ft.add('url')
-    print('sensitive', ft.is_sensitive('6'))
+    print('sensitive', ft.is_sensitive(6))
     print(ft.export())
     ft.dump()
 
     print('--')
-    for a,b,c,d in ft.next():
-        print(a,b,c,d)
+    for f_u, f_n, f_c, f_s in ft.next():
+        print(f_u, f_n, f_c, f_s)
 
     print('--')
-    for a, b, c, in tg.next():
-        print(a, b, c)
+    for t_u, t_n, t_c, in tg.next():
+        print(t_u, t_n, t_c)

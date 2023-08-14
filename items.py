@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Generator, Optional, Union
 from crypt import Crypt
-from utils import get_uid, filter_control_characters
+from utils import Uid, filter_control_characters
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
 
@@ -147,7 +147,7 @@ class Field(Element):
         self.name = name
         self.value = value
         self.sensitive = sensitive
-        self.uid = get_uid()
+        self.uid = Uid.get_uid()
 
     def __str__(self):
         """
@@ -164,7 +164,7 @@ class Field(Element):
     def get_sensitive(self) -> bool:
         return self.sensitive
 
-    def get_id(self) -> str:
+    def get_id(self) -> int:
         """
         Return the field unique identifier
         :return: unique identifier
@@ -215,9 +215,9 @@ class FieldCollection(Collection):
         """
         d = {}
         for key in self.data:
-            f = self.data[key]
-            assert isinstance(f, Field)
-            d[key] = f.export(crypt)
+            field = self.data[key]
+            assert isinstance(field, Field)
+            d[key] = field.export(crypt)
         return d
 
     def dump(self, indent=0):
@@ -237,7 +237,7 @@ class Item(Element):
         self.tags = tag_list
         self.note = note
         self.time_stamp = time_stamp
-        self.uid = get_uid()
+        self.uid = Uid.get_uid()
         self.field_collection = field_collection
 
     def __str__(self):
