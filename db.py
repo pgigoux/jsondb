@@ -52,11 +52,21 @@ class Database:
     def clear(self):
         """
         Clear data. This function will be used to initialize the database to avoid leaving it
-        in an undefined state (e.g. if a read fails half the way through).
+        in an undefined state (for instance, when a read fails half the way through).
         """
         self.tag_table = TagTable()
         self.field_table = FieldTable()
         self.item_collection = ItemCollection()
+
+    def update_tables(self, item: Item):
+        """
+        Increment the counters in the tag and field tables with the item contents
+        :param item: item
+        """
+        for t_uid in item.get_tags():
+            self.tag_table.increment(uid=t_uid)
+        for field in item.next_field():
+            self.field_table.increment(name=field.get_name())
 
     def read(self):
         """
@@ -95,13 +105,16 @@ class Database:
             # Read the items
             try:
                 for item_uid in json_data[DB_ITEMS_KEY]:
-                    item = json_data[DB_ITEMS_KEY][item_uid]
+                    json_item = json_data[DB_ITEMS_KEY][item_uid]
+                    # print(json_item)
                     fc = FieldCollection()
-                    for field_uid in item[ITEM_FIELDS_KEY]:
-                        field = item[ITEM_FIELDS_KEY][field_uid]
+                    for field_uid in json_item[ITEM_FIELDS_KEY]:
+                        field = json_item[ITEM_FIELDS_KEY][field_uid]
                         fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
-                    self.item_collection.add(Item(item[ITEM_NAME_KEY], item[ITEM_TAG_LIST_KEY],
-                                                  item[ITEM_NOTE_KEY], item[ITEM_TIMESTAMP_KEY], fc))
+                    item = Item(json_item[ITEM_NAME_KEY], json_item[ITEM_TAG_LIST_KEY],
+                                json_item[ITEM_NOTE_KEY], json_item[ITEM_TIMESTAMP_KEY], fc)
+                    self.item_collection.add(item)
+                    self.update_tables(item)
             except Exception as e:
                 self.clear()
                 raise ValueError(f'failed to read items: {repr(e)}')
@@ -183,7 +196,7 @@ class Database:
 
 
 if __name__ == '__main__':
-    db = Database(DEFAULT_DATABASE_NAME, 'test')
+    db = Database(DEFAULT_DATABASE_NAME, '')
     db.read()
     db.dump()
-    # db.export_to_json('export.json')
+    db.export_to_json('export.json')
