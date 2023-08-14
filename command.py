@@ -25,6 +25,10 @@ class CommandProcessor:
         else:
             return True
 
+    # -----------------------------------------------------------------
+    # Database commands
+    # -----------------------------------------------------------------
+
     def create_database(self, file_name=DEFAULT_DATABASE_NAME):
         """
         Create an empty database
@@ -65,6 +69,40 @@ class CommandProcessor:
             self.db.dump()
             self.print_line()
 
+    # -----------------------------------------------------------------
+    # Tag commands
+    # -----------------------------------------------------------------
+
+    def list_tags(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            for t_uid, t_name, t_count in self.db.tag_table.next():
+                print(f'{t_uid} {t_name} {t_count}')
+
+    def dump_tags(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            self.db.tag_table.dump()
+
+    # -----------------------------------------------------------------
+    # Field commands
+    # -----------------------------------------------------------------
+
+    def list_fields(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
+                print(f'{f_uid} {f_name} {f_count} {f_sensitive}')
+
+    def dump_fields(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            self.db.field_table.dump()
+
+    # -----------------------------------------------------------------
+    # Item commands
+    # -----------------------------------------------------------------
+
     def list_items(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -73,6 +111,7 @@ class CommandProcessor:
                 print(f'{item.get_id()} - {item.name}')
 
     def print_item(self, uid: str):
+        print('print_item', uid)
         if self.db_loaded():
             self.print_line()
             assert isinstance(self.db, Database)
@@ -85,7 +124,7 @@ class CommandProcessor:
                     print(f'Date: {timestamp_to_time(item.get_timestamp())}')
                     tag_list = [self.db.tag_table.get_name(x) for x in item.get_tags()]
                     print(f'Tags: {tag_list}')
-                    for field in item.field_collection.next():
+                    for field in item.next_field():
                         assert isinstance(field, Field)
                         sensitive = field.get_sensitive()
                         if sensitive and self.db.crypt_key:
@@ -125,3 +164,6 @@ class CommandProcessor:
 
 if __name__ == '__main__':
     cp = CommandProcessor()
+    cp.read_database(DEFAULT_DATABASE_NAME)
+    cp.list_items()
+    cp.dump_item(2710)

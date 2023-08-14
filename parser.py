@@ -33,15 +33,29 @@ class Parser:
 
     def field_command(self, token: Token):
         trace('field_command', token)
-        pass
+        if token == Token.LIST:
+            self.cp.list_fields()
+        elif token == Token.DUMP:
+            self.cp.dump_fields()
+        else:
+            self.error('bad subcommand', token, '')
 
     def tag_command(self, token: Token):
+        """
+        tag_command : TAG subcommand
+        :param token:
+        """
         trace('tag_command', token)
-        pass
+        if token == Token.LIST:
+            self.cp.list_tags()
+        elif token == Token.DUMP:
+            self.cp.dump_tags()
+        else:
+            self.error('bad subcommand', token, '')
 
     def item_command(self, token: Token):
         """
-        item : ITEM subcommand
+        item_command : ITEM subcommand
         """
         trace('item_command', token)
         if token == Token.LIST:
@@ -49,14 +63,17 @@ class Parser:
         elif token in [Token.PRINT, Token.DUMP]:
             tok, uid = self.get_token()
             trace('print,dump', tok, uid)
-            if tok == Token.UID:
+            if tok == Token.VALUE:
                 if token == Token.PRINT:
                     self.cp.print_item(uid)
                 else:
                     self.cp.dump_item(uid)
             else:
                 print('expected uid')
-
+        # elif token == Token.COUNT:
+        #     self.cp.item_count()
+        else:
+            self.error('bad subcommand', token, '')
 
     def action_command(self, cmd_token: Token, sub_token: Token):
         """
