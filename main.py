@@ -29,7 +29,7 @@ class CommandInterpreter(Cmd):
         self.parser.execute(command)
 
     def do_bye(self, _: str) -> bool:
-        self.parser.execute(QUIT_COMMAND)
+        self.parser.quit()
         return True
 
 
