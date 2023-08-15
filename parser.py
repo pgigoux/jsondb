@@ -12,8 +12,10 @@ def todo(label: str, *args):
     print(f'RUN: {label}: ' + str([f'{x}' for x in args]))
 
 
-# Error message when an unimplemented or unknown subcommand is found
-UNKNOWN_SUBCOMMAND = 'unknown subcommand'
+# Error messages
+ERROR_UNKNOWN_COMMAND = 'unknown command'
+ERROR_UNKNOWN_SUBCOMMAND = 'unknown subcommand'
+ERROR_BAD_FILENAME = 'bad file name'
 
 
 class Parser:
@@ -49,10 +51,11 @@ class Parser:
         print(f'get_token: {token} {value}')
         return token, value
 
-    def field_command(self, token: Token):
+    def field_command(self, token: Token, value: str):
         """
         field_command : FIELD subcommand
         :param token: subcommand token
+        :param value: subcommand value
         """
         trace('field_command', token)
         if token == Token.LIST:
@@ -62,12 +65,13 @@ class Parser:
         elif token == Token.COUNT:
             self.cp.field_count()
         else:
-            self.error('bad subcommand', token, '')
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
 
-    def tag_command(self, token: Token):
+    def tag_command(self, token: Token, value: str):
         """
         tag_command : TAG subcommand
         :param token: subcommand token
+        :param value: subcommand value
         """
         trace('tag_command', token)
         if token == Token.LIST:
@@ -77,7 +81,7 @@ class Parser:
         elif token == Token.COUNT:
             self.cp.tag_count()
         else:
-            self.error('bad subcommand', token, '')
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
 
     def item_search_command(self):
         """
@@ -111,9 +115,11 @@ class Parser:
         else:
             self.error('name expected', tok, value)
 
-    def item_command(self, token: Token):
+    def item_command(self, token: Token, value: str):
         """
         item_command : ITEM subcommand
+        :param token: subcommand token
+        :param value: subcommand value
         """
         trace('item_command', token)
         if token == Token.LIST:
@@ -127,36 +133,40 @@ class Parser:
                 else:
                     self.cp.item_dump(uid)
             else:
-                print('expected uid')
+                print('name expected')
         elif token == Token.COUNT:
             self.cp.item_count()
         elif token == Token.SEARCH:
             self.item_search_command()
         else:
-            self.error('bad subcommand', token, '')
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
 
-    def action_command(self, cmd_token: Token, sub_token: Token):
+    def action_command(self, cmd_token: Token, cmd_value, sub_token: Token, sub_value: str):
         """
         action_command : command subcommand
         :param cmd_token: command token
+        :param cmd_value: command value
         :param sub_token: subcommand token
-        :return:
+        :param sub_value: subcommand value
         """
-        trace('action_command', cmd_token, sub_token)
+        trace('action_command', cmd_token, cmd_value, sub_token, sub_value)
         if cmd_token == Token.ITEM:
-            self.item_command(sub_token)
+            self.item_command(sub_token, sub_value)
         elif cmd_token == Token.FIELD:
-            self.field_command(sub_token)
+            self.field_command(sub_token, sub_value)
         elif cmd_token == Token.TAG:
-            self.tag_command(sub_token)
+            self.tag_command(sub_token, sub_value)
+        else:
+            self.error(ERROR_UNKNOWN_COMMAND, cmd_token, cmd_value)  # should never get here
 
-    def input_output_command(self, token: Token):
+    def input_output_command(self, token: Token, value: str):
         """
         input_output_command: CREATE [file_name] |
                               READ [file_name] |
                               WRITE |
                               export file_name
         :param token: next token
+        :param value: token value
         """
         trace('input_output_command', token)
         if token in [Token.CREATE, Token.READ]:
@@ -169,7 +179,7 @@ class Parser:
             elif tok == Token.FILE:
                 trace('file name', file_name)
             else:
-                self.error('bad file name', token, file_name)
+                self.error(ERROR_BAD_FILENAME, token, file_name)
                 return
 
             # Run command
@@ -179,7 +189,7 @@ class Parser:
             elif token == Token.CREATE:
                 todo('create', file_name)
             else:
-                self.error('bad command', token)
+                self.error(ERROR_UNKNOWN_COMMAND, token, value)
 
         elif token == Token.WRITE:
             trace('input_output', 'write')
@@ -191,14 +201,15 @@ class Parser:
             if tok == Token.FILE:
                 todo('export', file_name)
             else:
-                self.error('missing file name', token, file_name)
+                self.error(ERROR_BAD_FILENAME, token, file_name)
         else:
-            self.error('Unknown i/o command', token, '')  # should never get here
+            self.error(ERROR_UNKNOWN_COMMAND, token, value)  # should never get here
 
-    def misc_command(self, token: Token) -> bool:
+    def misc_command(self, token: Token, value: str) -> bool:
         """
         misc_command: DUMP | QUIT
         :param token: next token
+        :param value: token value
         :return: True if QUIT command, False otherwise
         """
         if token == Token.DUMP:
@@ -206,6 +217,8 @@ class Parser:
         elif token == Token.QUIT:
             todo('quit', token)
             return True
+        else:
+            self.error(ERROR_UNKNOWN_COMMAND, token, value)  # should never get here
         return False
 
     def subcommand(self) -> tuple[Token, Union[str, int, float]]:
@@ -234,17 +247,17 @@ class Parser:
         if token in LEX_ACTIONS:
             sub_token, value = self.subcommand()
             if sub_token != Token.INVALID:
-                self.action_command(token, sub_token)
+                self.action_command(token, value, sub_token, value)
             else:
                 self.error('Invalid subcommand', sub_token, value)
         elif token in LEX_INPUT_OUTPUT:
-            self.input_output_command(token)
+            self.input_output_command(token, value)
         elif token in LEX_MISC_COMMANDS:
-            quit_flag = self.misc_command(token)
+            quit_flag = self.misc_command(token, value)
         elif token == Token.EOS:
             pass
         else:
-            self.error('Unknown command', token, value)
+            self.error(ERROR_UNKNOWN_COMMAND, token, value)
         return quit_flag
 
     def execute(self, command: str):
