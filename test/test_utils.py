@@ -5,15 +5,19 @@ from utils import Uid, match_strings, trimmed_string, filter_control_characters
 def test_uid():
 
     Uid.clear()
-    assert Uid.uid_last == Uid.FIRST_UID
+    assert Uid.get_uid() == Uid.FIRST_UID + 1
 
-    uid = Uid.get_uid()
-    assert isinstance(uid, int)
-    assert uid == Uid.FIRST_UID + 1
+    uid_1 = Uid.get_uid()
+    assert isinstance(uid_1, int)
+
+    uid_2 = Uid.get_uid()
+    assert isinstance(uid_2, int)
+
+    assert uid_2 == uid_1 + 1
 
     # force a duplicate
     with pytest.raises(ValueError):
-        Uid.uid_last = Uid.FIRST_UID
+        Uid.reset()
         _ = Uid.get_uid()
 
 

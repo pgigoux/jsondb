@@ -16,7 +16,7 @@ class Uid:
     FIRST_UID = 1000
 
     # Last uid returned
-    uid_last = FIRST_UID
+    uid_count = FIRST_UID
 
     # List of all uid returned. Used to check for duplicates.
     uid_list = []
@@ -27,20 +27,28 @@ class Uid:
         Clear the class variables (testing only)
         :return:
         """
-        cls.uid_last = cls.FIRST_UID
+        cls.uid_count = cls.FIRST_UID
         cls.uid_list = []
+
+    @classmethod
+    def reset(cls, value=FIRST_UID):
+        """
+        Reset the sequential identifier count
+        :param value: value used to reset the count
+        """
+        cls.uid_count = value
 
     @classmethod
     def get_uid(cls) -> int:
         """
         :return: unique identifier
         """
-        cls.uid_last += 1
-        if cls.uid_last not in cls.uid_list:
-            cls.uid_list.append(cls.uid_last)
+        cls.uid_count += 1
+        if cls.uid_count not in cls.uid_list:
+            cls.uid_list.append(cls.uid_count)
         else:
             raise ValueError('duplicate uid')
-        return cls.uid_last
+        return cls.uid_count
 
     @classmethod
     def dump(cls):
