@@ -3,7 +3,6 @@ from enum import Enum, auto
 from typing import Union
 
 # Regular expressions
-UID_PATTERN = r'[a-z0-9]*-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+'
 LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
 SHORT_DATE_PATTERN = r'\d\d/\d\d/\d\d'
 MONTH_YEAR_PATTERN = r'\d\d/\d\d'
@@ -106,8 +105,6 @@ class Lexer:
         """
         if word in self.keywords:
             tup = self.keywords[word], word
-        elif re.search(UID_PATTERN, word):
-            tup = Token.UID, word
         elif re.search(LONG_DATE_PATTERN, word) \
                 or re.search(SHORT_DATE_PATTERN, word) \
                 or re.search(MONTH_YEAR_PATTERN, word):
