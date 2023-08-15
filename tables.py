@@ -79,21 +79,25 @@ class Table:
         else:
             raise KeyError('no name specified')
 
-        # The unique identifier is optional. Generate one if not present.
-        uid = None
-        if KEY_UID in kwargs:
-            uid = kwargs[KEY_UID]
-        if uid is None:
-            uid = Uid.get_uid()
-        else:
-            uid = int(uid)
-
         # Enter elements to the table
         if name not in self.name_dict:
+
+            # The unique identifier is optional.
+            # Generate one if not present and make sure it's of the right type.
+            uid = None
+            if KEY_UID in kwargs:
+                uid = kwargs[KEY_UID]
+            if uid is None:
+                uid = Uid.get_uid()
+            else:
+                uid = int(uid)
+
+            # Update table
             self.name_dict[name] = uid
             self.uid_dict[uid] = name
             self.count_dict[uid] = 0
             self.attr_dict[uid] = {x: kwargs[x] for x in kwargs if x not in TABLE_KEY_LIST}
+
         else:
             raise KeyError(f'{name} already exists')
 
