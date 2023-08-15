@@ -1,8 +1,6 @@
 from cmd import Cmd
 from parser import Parser
 
-QUIT_COMMAND = 'quit'
-
 
 class CommandInterpreter(Cmd):
     prompt = 'cmd> '
