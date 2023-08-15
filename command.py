@@ -73,44 +73,54 @@ class CommandProcessor:
     # Tag commands
     # -----------------------------------------------------------------
 
-    def list_tags(self):
+    def tag_list(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for t_uid, t_name, t_count in self.db.tag_table.next():
                 print(f'{t_uid} {t_name} {t_count}')
 
-    def dump_tags(self):
+    def tag_dump(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             self.db.tag_table.dump()
+
+    def tag_count(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            print(len(self.db.tag_table))
 
     # -----------------------------------------------------------------
     # Field commands
     # -----------------------------------------------------------------
 
-    def list_fields(self):
+    def field_list(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
                 print(f'{f_uid} {f_name} {f_count} {f_sensitive}')
 
-    def dump_fields(self):
+    def field_dump(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             self.db.field_table.dump()
+
+    def field_count(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            print(len(self.db.field_table))
 
     # -----------------------------------------------------------------
     # Item commands
     # -----------------------------------------------------------------
 
-    def list_items(self):
+    def item_list(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for item in self.db.item_collection.next():
                 assert isinstance(item, Item)
                 print(f'{item.get_id()} - {item.name}')
 
-    def print_item(self, uid: str):
+    def item_print(self, uid: int):
         print('print_item', uid)
         if self.db_loaded():
             self.print_line()
@@ -126,13 +136,11 @@ class CommandProcessor:
                     print(f'Tags: {tag_list}')
                     for field in item.next_field():
                         assert isinstance(field, Field)
-                        sensitive = field.get_sensitive()
-                        if sensitive and self.db.crypt_key:
+                        mark = '(*)' if field.get_sensitive() else '   '
+                        if field.get_sensitive() and self.db.crypt_key:
                             field_value = self.db.crypt_key.decrypt_str2str(field.get_value())
-                            mark = '(*)'
                         else:
                             field_value = field.get_value()
-                            mark = '   '
                         print(f'   {field.get_id()} {mark} {field.get_name()} {field_value}')
                     print('Note:')
                     if len(item.get_note()) > 0:
@@ -143,7 +151,7 @@ class CommandProcessor:
             else:
                 print('item not found')
 
-    def dump_item(self, uid: str):
+    def item_dump(self, uid: int):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             if uid in self.db.item_collection:
@@ -155,7 +163,12 @@ class CommandProcessor:
             else:
                 print('item not found')
 
-    def search_items(self):
+    def item_count(self):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            print(len(self.db.item_collection))
+
+    def item_search(self):
         if self.db_loaded():
             assert isinstance(self.db, Database)
             self.db.search()
@@ -165,5 +178,5 @@ class CommandProcessor:
 if __name__ == '__main__':
     cp = CommandProcessor()
     cp.read_database(DEFAULT_DATABASE_NAME)
-    cp.list_items()
-    cp.dump_item(2710)
+    cp.item_list()
+    cp.item_dump(2710)

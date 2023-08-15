@@ -34,9 +34,11 @@ class Parser:
     def field_command(self, token: Token):
         trace('field_command', token)
         if token == Token.LIST:
-            self.cp.list_fields()
+            self.cp.field_list()
         elif token == Token.DUMP:
-            self.cp.dump_fields()
+            self.cp.field_dump()
+        elif token == Token.COUNT:
+            self.cp.field_count()
         else:
             self.error('bad subcommand', token, '')
 
@@ -47,9 +49,11 @@ class Parser:
         """
         trace('tag_command', token)
         if token == Token.LIST:
-            self.cp.list_tags()
+            self.cp.tag_list()
         elif token == Token.DUMP:
-            self.cp.dump_tags()
+            self.cp.tag_dump()
+        elif token == Token.COUNT:
+            self.cp.tag_count()
         else:
             self.error('bad subcommand', token, '')
 
@@ -59,19 +63,19 @@ class Parser:
         """
         trace('item_command', token)
         if token == Token.LIST:
-            self.cp.list_items()
+            self.cp.item_list()
         elif token in [Token.PRINT, Token.DUMP]:
             tok, uid = self.get_token()
             trace('print,dump', tok, uid)
             if tok == Token.VALUE:
                 if token == Token.PRINT:
-                    self.cp.print_item(uid)
+                    self.cp.item_print(uid)
                 else:
-                    self.cp.dump_item(uid)
+                    self.cp.item_dump(uid)
             else:
                 print('expected uid')
-        # elif token == Token.COUNT:
-        #     self.cp.item_count()
+        elif token == Token.COUNT:
+            self.cp.item_count()
         else:
             self.error('bad subcommand', token, '')
 
@@ -114,7 +118,7 @@ class Parser:
 
             # Run command
             if token == Token.READ:
-                todo('read', file_name)
+                trace('read', file_name)
                 self.cp.read_database(file_name)
             elif token == Token.CREATE:
                 todo('create', file_name)
