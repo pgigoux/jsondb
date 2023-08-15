@@ -97,7 +97,8 @@ class CommandProcessor:
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
-                print(f'{f_uid} {f_name} {f_count} {f_sensitive}')
+                mark = '(*)' if f_sensitive else '   '
+                print(f'{f_uid} {mark} {f_name} {f_count}')
 
     def field_dump(self):
         if self.db_loaded():
