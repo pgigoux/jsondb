@@ -137,7 +137,7 @@ class Collection:
 
 class Field(Element):
 
-    def __init__(self, name: str, value: str | int, sensitive=False):
+    def __init__(self, name: str, value: str | int | float, sensitive=False):
         """
         Create a field
         :param name: field name
@@ -260,7 +260,7 @@ class Item(Element):
     def get_timestamp(self):
         return self.time_stamp
 
-    def get_id(self):
+    def get_id(self) -> int:
         """
         Return the item unique identifier
         :return: unique identifier
