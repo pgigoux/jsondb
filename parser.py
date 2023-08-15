@@ -254,12 +254,13 @@ class Parser:
         self.lexer.input(self.cmd)
         return self.command()
 
-    def quit(self):
+    def quit(self, keyboard_interrupt: bool):
         """
         Terminate the parser
+        :param keyboard_interrupt: program terminated by ctrl-c?
         """
         trace('quit')
-        self.cp.quit_command()
+        self.cp.quit_command(keyboard_interrupt)
 
 
 if __name__ == '__main__':

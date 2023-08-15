@@ -180,11 +180,11 @@ class CommandProcessor:
                 assert isinstance(item, Item)
                 print(f'{item.get_id()} - {item.name}')
 
-    def quit_command(self):
+    def quit_command(self, keyboard_interrupt: bool):
         """
         Command that will be called when the program exits
         """
-        pass
+        print(f'quit {keyboard_interrupt}')
 
 
 if __name__ == '__main__':

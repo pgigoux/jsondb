@@ -12,10 +12,10 @@ class CommandInterpreter(Cmd):
         super().__init__()
         self.parser = p
 
-    # trap EOF (CTRL-D)
+    # ignore eof (ctrl-d)
     def do_EOF(self, _) -> bool:
-        self.parser.quit()
-        return True
+        print('')
+        return False
 
     # ignore empty lines
     def emptyline(self) -> bool:
@@ -29,7 +29,7 @@ class CommandInterpreter(Cmd):
         self.parser.execute(command)
 
     def do_bye(self, _: str) -> bool:
-        self.parser.quit()
+        self.parser.quit(False)
         return True
 
 
@@ -39,4 +39,4 @@ if __name__ == '__main__':
     try:
         ci.cmdloop()
     except KeyboardInterrupt:
-        parser.quit()
+        parser.quit(True)
