@@ -136,6 +136,8 @@ def process_field(field: dict) -> tuple:
         f_name = 'Serial number'
     elif f_name == 'Login name':
         f_name = 'Login'
+    elif f_name == 'ID number':
+        f_name = 'ID'
     elif 'Security Answer' in f_name:
         f_name = f_name.replace('Security Answer', 'Security answer')
     elif 'Securiry' in f_name:
