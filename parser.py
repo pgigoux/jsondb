@@ -1,7 +1,7 @@
 from typing import Union
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_INPUT_OUTPUT, LEX_MISC_COMMANDS
+from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE
 
 
 def trace(label: str, *args):
@@ -159,12 +159,13 @@ class Parser:
         else:
             self.error(ERROR_UNKNOWN_COMMAND, cmd_token, cmd_value)  # should never get here
 
-    def input_output_command(self, token: Token, value: str):
+    def database_commands(self, token: Token, value: str):
         """
-        input_output_command: CREATE [file_name] |
+        database_commands: CREATE [file_name] |
                               READ [file_name] |
                               WRITE |
-                              export file_name
+                              EXPORT file_name |
+                              DUMP
         :param token: next token
         :param value: token value
         """
@@ -202,24 +203,10 @@ class Parser:
                 todo('export', file_name)
             else:
                 self.error(ERROR_BAD_FILENAME, token, file_name)
-        else:
-            self.error(ERROR_UNKNOWN_COMMAND, token, value)  # should never get here
-
-    def misc_command(self, token: Token, value: str) -> bool:
-        """
-        misc_command: DUMP | QUIT
-        :param token: next token
-        :param value: token value
-        :return: True if QUIT command, False otherwise
-        """
-        if token == Token.DUMP:
+        elif token == Token.DUMP:
             self.cp.dump_database()
-        elif token == Token.QUIT:
-            todo('quit', token)
-            return True
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token, value)  # should never get here
-        return False
 
     def subcommand(self) -> tuple[Token, Union[str, int, float]]:
         """
@@ -250,10 +237,8 @@ class Parser:
                 self.action_command(token, value, sub_token, value)
             else:
                 self.error('Invalid subcommand', sub_token, value)
-        elif token in LEX_INPUT_OUTPUT:
-            self.input_output_command(token, value)
-        elif token in LEX_MISC_COMMANDS:
-            quit_flag = self.misc_command(token, value)
+        elif token in LEX_DATABASE:
+            self.database_commands(token, value)
         elif token == Token.EOS:
             pass
         else:
@@ -268,6 +253,13 @@ class Parser:
         self.cmd = command.strip()
         self.lexer.input(self.cmd)
         return self.command()
+
+    def quit(self):
+        """
+        Terminate the parser
+        """
+        trace('quit')
+        self.cp.quit_command()
 
 
 if __name__ == '__main__':

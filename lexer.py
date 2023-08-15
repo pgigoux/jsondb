@@ -14,6 +14,7 @@ class Token(Enum):
     READ = auto()
     WRITE = auto()
     EXPORT = auto()
+    DUMP = auto()
     # subcommands
     LIST = auto()
     SEARCH = auto()
@@ -29,8 +30,6 @@ class Token(Enum):
     VALUE = auto()
     STRING = auto()
     # misc
-    DUMP = auto()
-    QUIT = auto()
     EOS = auto()
     # switches
     SW_SENSITIVE = auto()
@@ -52,10 +51,9 @@ class State(Enum):
 
 # Token classes
 LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
-LEX_INPUT_OUTPUT = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT]
+LEX_DATABASE = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT, Token.DUMP]
 LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.DUMP, Token.SEARCH, Token.COUNT,
                    Token.ADD, Token.RENAME, Token.DELETE, Token.EDIT]
-LEX_MISC_COMMANDS = [Token.DUMP, Token.QUIT]
 
 # Regular expressions
 LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
@@ -82,10 +80,10 @@ class Lexer:
         self.state = State.START
         self.keywords = {
             'item': Token.ITEM, 'field': Token.FIELD, 'tag': Token.TAG,
-            'create': Token.CREATE, 'read': Token.READ, 'write': Token.WRITE, 'export': Token.EXPORT,
+            'create': Token.CREATE, 'read': Token.READ, 'write': Token.WRITE,
+            'export': Token.EXPORT, 'dump': Token.DUMP,
             'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
             'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
-            'dump': Token.DUMP, 'quit': Token.QUIT,
             # aliases
             'save': Token.WRITE, 'ren': Token.RENAME, 'del': Token.DELETE
         }

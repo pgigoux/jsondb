@@ -14,7 +14,7 @@ class CommandInterpreter(Cmd):
 
     # trap EOF (CTRL-D)
     def do_EOF(self, _) -> bool:
-        self.parser.execute(QUIT_COMMAND)
+        self.parser.quit()
         return True
 
     # ignore empty lines
@@ -39,4 +39,4 @@ if __name__ == '__main__':
     try:
         ci.cmdloop()
     except KeyboardInterrupt:
-        parser.execute(QUIT_COMMAND)
+        parser.quit()

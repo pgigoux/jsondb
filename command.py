@@ -179,6 +179,12 @@ class CommandProcessor:
                 assert isinstance(item, Item)
                 print(f'{item.get_id()} - {item.name}')
 
+    def quit_command(self):
+        """
+        Command that will be called when the program exits
+        """
+        pass
+
 
 if __name__ == '__main__':
     cp = CommandProcessor()
