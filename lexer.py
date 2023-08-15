@@ -2,15 +2,6 @@ import re
 from enum import Enum, auto
 from typing import Union
 
-# Regular expressions
-LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
-SHORT_DATE_PATTERN = r'\d\d/\d\d/\d\d'
-MONTH_YEAR_PATTERN = r'\d\d/\d\d'
-FILE_PATTERN = r'[a-z0-9]+\.[a-z0-9]+'
-NAME_PATTERN = r'[a-zA-Z_][a-zA-Z_0-9]*'
-INT_PATTERN = r'\d+'
-FLOAT_PATTERN = r'\d*\.\d+'
-
 
 # Tokens
 class Token(Enum):
@@ -41,8 +32,22 @@ class Token(Enum):
     DUMP = auto()
     QUIT = auto()
     EOS = auto()
+    # switches
+    SW_SENSITIVE = auto()
+    SW_NAME = auto()
+    SW_FIELD_NAME = auto()
+    SW_FIELD_VALUE = auto()
+    SW_TAG = auto()
+    SW_NOTE = auto()
     # error
     INVALID = auto()
+
+
+# DFA states
+class State(Enum):
+    START = auto()
+    WORD = auto()
+    STRING = auto()
 
 
 # Token classes
@@ -52,13 +57,14 @@ LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.DUMP, Token.SEARCH, Token.COUN
                    Token.ADD, Token.RENAME, Token.DELETE, Token.EDIT]
 LEX_MISC_COMMANDS = [Token.DUMP, Token.QUIT]
 
-
-# DFA states
-class State(Enum):
-    START = auto()
-    WORD = auto()
-    STRING = auto()
-
+# Regular expressions
+LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
+SHORT_DATE_PATTERN = r'\d\d/\d\d/\d\d'
+MONTH_YEAR_PATTERN = r'\d\d/\d\d'
+FILE_PATTERN = r'[a-z0-9]+\.[a-z0-9]+'
+NAME_PATTERN = r'[a-zA-Z_][a-zA-Z_0-9]*'
+INT_PATTERN = r'\d+'
+FLOAT_PATTERN = r'\d*\.\d+'
 
 # Valid string delimiters
 STRING_DELIMITERS = ['\'', '"']
@@ -83,6 +89,14 @@ class Lexer:
             # aliases
             'save': Token.WRITE, 'ren': Token.RENAME, 'del': Token.DELETE
         }
+        self.switches = {
+            '-s': Token.SW_SENSITIVE,
+            '-n': Token.SW_NAME,
+            '-t': Token.SW_TAG,
+            '-fn': Token.SW_FIELD_NAME,
+            '-fv': Token.SW_FIELD_VALUE,
+            '-no': Token.SW_NOTE
+        }
 
     def input(self, command: str):
         """
@@ -105,6 +119,8 @@ class Lexer:
         """
         if word in self.keywords:
             tup = self.keywords[word], word
+        elif word in self.switches:
+            tup = self.switches[word], True
         elif re.search(LONG_DATE_PATTERN, word) \
                 or re.search(SHORT_DATE_PATTERN, word) \
                 or re.search(MONTH_YEAR_PATTERN, word):
@@ -162,7 +178,7 @@ class Lexer:
 
 if __name__ == '__main__':
     lx = Lexer()
-    lx.input('item "this is a string list 20/10/2022 07/24 3.4 7 +')
+    lx.input('item "this is a string" list 20/10/2022 07/24 3.4 7 -s -n -t -fn -fv -no')
     while True:
         t, v = lx.next_token()
         print(t, v)

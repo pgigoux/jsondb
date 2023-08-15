@@ -28,6 +28,16 @@ def test_keywords():
     assert lx.token('quit') == (Token.QUIT, 'quit')
 
 
+def test_switches():
+    lx = Lexer()
+    assert lx.token('-s') == (Token.SW_SENSITIVE, True)
+    assert lx.token('-n') == (Token.SW_NAME, True)
+    assert lx.token('-t') == (Token.SW_TAG, True)
+    assert lx.token('-fn') == (Token.SW_FIELD_NAME, True)
+    assert lx.token('-fv') == (Token.SW_FIELD_VALUE, True)
+    assert lx.token('-no') == (Token.SW_NOTE, True)
+
+
 def test_expressions():
     lx = Lexer()
     assert lx.token('3.15') == (Token.VALUE, 3.15)
@@ -76,4 +86,4 @@ def test_next():
 
 
 if __name__ == '__main__':
-    test_keywords()
+    test_switches()
