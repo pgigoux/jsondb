@@ -149,32 +149,39 @@ class Database:
             f.write(json_data)
             f.close()
 
-    def search(self, pattern: str, item_name=False, field_name=False, field_value=False,
-               tag=False, note=False) -> list[Item]:
+    def search(self, pattern: str, item_name_flag=True, tag_flag=False,
+               field_name_flag=False, field_value_flag=False, note_flag=False) -> list[Item]:
         """
         :param pattern: pattern to search for
-        :param item_name: search in item name?
-        :param field_name: search in field name?
-        :param field_value: search in field value?
-        :param tag: search in tags?
-        :param note: search in note?
+        :param item_name_flag: search in item name? (default)
+        :param tag_flag: search in tags?
+        :param field_name_flag: search in field name?
+        :param field_value_flag: search in field value?
+        :param note_flag: search in note?
         :return: list of items matching the search criteria
         """
         output_list = []
         compiled_pattern = re.compile(pattern, flags=re.IGNORECASE)
         for item in self.item_collection.next():
             assert isinstance(item, Item)
-            if item_name and compiled_pattern.search(item.name):
+            if item_name_flag and compiled_pattern.search(item.name):
                 output_list.append(item)
-            if field_name or field_value:
+            if field_name_flag or field_value_flag:
                 for field in item.next_field():
-                    if field_name and compiled_pattern.search(field.name):
+                    if field_name_flag and compiled_pattern.search(field.name):
                         output_list.append(item)
-                    if field_value and compiled_pattern.search(field.value):
+                    if field_value_flag and compiled_pattern.search(field.value):
                         output_list.append(item)
-            if tag and pattern in item.tags:
-                output_list.append(item)
-            if note and compiled_pattern.search(item.note):
+            if tag_flag:
+                try:
+                    for tag in [self.tag_table.get_name(x) for x in item.get_tags()]:
+                        if compiled_pattern.search(tag):
+                            output_list.append(item)
+                except KeyError:
+                    pass
+            # if tag_flag and pattern in item.tags:
+            #     output_list.append(item)
+            if note_flag and compiled_pattern.search(item.note):
                 output_list.append(item)
 
         return output_list

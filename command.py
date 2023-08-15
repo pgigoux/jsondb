@@ -168,11 +168,16 @@ class CommandProcessor:
             assert isinstance(self.db, Database)
             print(len(self.db.item_collection))
 
-    def item_search(self):
+    def item_search(self, name: str, name_flag: bool, tag_flag: bool,
+                    field_name_flag: bool, field_value_flag: bool, note_flag: bool):
         if self.db_loaded():
             assert isinstance(self.db, Database)
-            self.db.search()
-            pass
+            item_list = self.db.search(name, item_name_flag=name_flag, tag_flag=tag_flag,
+                                       field_name_flag=field_name_flag, field_value_flag=field_value_flag,
+                                       note_flag=note_flag)
+            for item in item_list:
+                assert isinstance(item, Item)
+                print(f'{item.get_id()} - {item.name}')
 
 
 if __name__ == '__main__':

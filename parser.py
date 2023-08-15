@@ -12,7 +12,14 @@ def todo(label: str, *args):
     print(f'RUN: {label}: ' + str([f'{x}' for x in args]))
 
 
+# Error message when an unimplemented or unknown subcommand is found
+UNKNOWN_SUBCOMMAND = 'unknown subcommand'
+
+
 class Parser:
+    """
+    Recursive descent parser to process commands
+    """
 
     def __init__(self):
         self.lexer = Lexer()
@@ -21,17 +28,32 @@ class Parser:
 
     @staticmethod
     def error(error_message: str, token: Token, value: Union[int, float, str]):
+        """
+        Print error message
+        :param error_message: message text
+        :param token: offending token
+        :param value: token value
+        :return:
+        """
         if token == Token.INVALID:
             print(f'Invalid token {token} {value}')
         else:
             print(f'{error_message} {token} {value}')
 
     def get_token(self) -> tuple[Token, Union[str, int, float]]:
+        """
+        Get next token from the lexer
+        :return: token id and value
+        """
         token, value = self.lexer.next_token()
         print(f'get_token: {token} {value}')
         return token, value
 
     def field_command(self, token: Token):
+        """
+        field_command : FIELD subcommand
+        :param token: subcommand token
+        """
         trace('field_command', token)
         if token == Token.LIST:
             self.cp.field_list()
@@ -45,7 +67,7 @@ class Parser:
     def tag_command(self, token: Token):
         """
         tag_command : TAG subcommand
-        :param token:
+        :param token: subcommand token
         """
         trace('tag_command', token)
         if token == Token.LIST:
@@ -56,6 +78,38 @@ class Parser:
             self.cp.tag_count()
         else:
             self.error('bad subcommand', token, '')
+
+    def item_search_command(self):
+        """
+        item_search_command: ITEM SEARCH NAME search_option_list
+        :return:
+        """
+        tok, value = self.get_token()
+        if tok == Token.NAME:
+            # Process flags
+            name_flag, tag_flag, field_name_flag, field_value_flag, note_flag = (False, False, False, False, False)
+            while True:
+                tok, _ = self.get_token()
+                if tok == Token.EOS:
+                    break
+                elif tok == Token.SW_NAME:
+                    name_flag = True
+                elif tok == Token.SW_TAG:
+                    tag_flag = True
+                elif tok == Token.SW_FIELD_NAME:
+                    field_name_flag = True
+                elif tok == Token.SW_FIELD_VALUE:
+                    field_value_flag = True
+                elif tok == Token.SW_NOTE:
+                    note_flag = True
+
+            # Enable search by item name if no flags were specified
+            if not any((name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)):
+                name_flag = True
+
+            self.cp.item_search(value, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
+        else:
+            self.error('name expected', tok, value)
 
     def item_command(self, token: Token):
         """
@@ -76,6 +130,8 @@ class Parser:
                 print('expected uid')
         elif token == Token.COUNT:
             self.cp.item_count()
+        elif token == Token.SEARCH:
+            self.item_search_command()
         else:
             self.error('bad subcommand', token, '')
 
