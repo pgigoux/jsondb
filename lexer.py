@@ -1,10 +1,9 @@
 import re
 from enum import Enum, auto
-from typing import Union
 
 
-# Tokens
-class Token(Enum):
+# Token identifiers
+class Tid(Enum):
     # commands
     ITEM = auto()
     FIELD = auto()
@@ -50,10 +49,10 @@ class State(Enum):
 
 
 # Token classes
-LEX_ACTIONS = [Token.ITEM, Token.FIELD, Token.TAG]
-LEX_DATABASE = [Token.CREATE, Token.READ, Token.WRITE, Token.EXPORT, Token.DUMP]
-LEX_SUBCOMMANDS = [Token.LIST, Token.PRINT, Token.DUMP, Token.SEARCH, Token.COUNT,
-                   Token.ADD, Token.RENAME, Token.DELETE, Token.EDIT]
+LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
+LEX_DATABASE = [Tid.CREATE, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
+LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
+                   Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
 
 # Regular expressions
 LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
@@ -71,6 +70,33 @@ STRING_DELIMITERS = ['\'', '"']
 UNTERMINATED_STRING = 'unterminated'
 
 
+class Token:
+    """
+    Tokens are objects that have an id and value
+    """
+
+    def __init__(self, tid: Tid, value: int | float | str):
+        self._tid = tid
+        self._value = value
+        pass
+
+    def __eq__(self, token):
+        if isinstance(token, Token):
+            return self.tid == token.tid and self.value == token.value
+        return False
+
+    def __str__(self):
+        return f'({self._tid}, {self._value})'
+
+    @property
+    def tid(self):
+        return self._tid
+
+    @property
+    def value(self):
+        return self._value
+
+
 class Lexer:
 
     def __init__(self):
@@ -79,21 +105,21 @@ class Lexer:
         self.char_list = []
         self.state = State.START
         self.keywords = {
-            'item': Token.ITEM, 'field': Token.FIELD, 'tag': Token.TAG,
-            'create': Token.CREATE, 'read': Token.READ, 'write': Token.WRITE,
-            'export': Token.EXPORT, 'dump': Token.DUMP,
-            'list': Token.LIST, 'search': Token.SEARCH, 'print': Token.PRINT,
-            'count': Token.COUNT, 'rename': Token.RENAME, 'delete': Token.DELETE, 'edit': Token.EDIT,
+            'item': Tid.ITEM, 'field': Tid.FIELD, 'tag': Tid.TAG,
+            'create': Tid.CREATE, 'read': Tid.READ, 'write': Tid.WRITE,
+            'export': Tid.EXPORT, 'dump': Tid.DUMP,
+            'list': Tid.LIST, 'search': Tid.SEARCH, 'print': Tid.PRINT,
+            'count': Tid.COUNT, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
             # aliases
-            'save': Token.WRITE, 'ren': Token.RENAME, 'del': Token.DELETE
+            'save': Tid.WRITE, 'ren': Tid.RENAME, 'del': Tid.DELETE
         }
         self.switches = {
-            '-s': Token.SW_SENSITIVE,
-            '-n': Token.SW_NAME,
-            '-t': Token.SW_TAG,
-            '-fn': Token.SW_FIELD_NAME,
-            '-fv': Token.SW_FIELD_VALUE,
-            '-no': Token.SW_NOTE
+            '-s': Tid.SW_SENSITIVE,
+            '-n': Tid.SW_NAME,
+            '-t': Tid.SW_TAG,
+            '-fn': Tid.SW_FIELD_NAME,
+            '-fv': Tid.SW_FIELD_VALUE,
+            '-no': Tid.SW_NOTE
         }
 
     def input(self, command: str):
@@ -107,35 +133,63 @@ class Lexer:
         self.state = State.START
         self.count = 0
 
-    def token(self, word: str) -> tuple[Token, Union[str, int, float]]:
+    # def token(self, word: str) -> tuple[Token, Union[str, int, float]]:
+    #     """
+    #     Check for matching patterns and return token code and data.
+    #     Keywords are always checked first.
+    #     The order patterns are checked matters.
+    #     :param word:
+    #     :return: tuple containing the toekn and its value
+    #     """
+    #     if word in self.keywords:
+    #         tup = self.keywords[word], word
+    #     elif word in self.switches:
+    #         tup = self.switches[word], True
+    #     elif re.search(LONG_DATE_PATTERN, word) \
+    #             or re.search(SHORT_DATE_PATTERN, word) \
+    #             or re.search(MONTH_YEAR_PATTERN, word):
+    #         tup = Token.VALUE, word
+    #     elif re.search(FLOAT_PATTERN, word):
+    #         tup = Token.VALUE, float(word)
+    #     elif re.search(INT_PATTERN, word):
+    #         tup = Token.VALUE, int(word)
+    #     elif re.search(FILE_PATTERN, word):
+    #         tup = Token.FILE, word
+    #     elif re.search(NAME_PATTERN, word):
+    #         tup = Token.NAME, word
+    #     else:
+    #         tup = Token.INVALID, word
+    #     return tup
+
+    def token(self, word: str) -> Token:
         """
         Check for matching patterns and return token code and data.
         Keywords are always checked first.
         The order patterns are checked matters.
         :param word:
-        :return: tuple containing the toekn and its value
+        :return: TODO
         """
         if word in self.keywords:
-            tup = self.keywords[word], word
+            tup = Token(self.keywords[word], word)
         elif word in self.switches:
-            tup = self.switches[word], True
+            tup = Token(self.switches[word], True)
         elif re.search(LONG_DATE_PATTERN, word) \
                 or re.search(SHORT_DATE_PATTERN, word) \
                 or re.search(MONTH_YEAR_PATTERN, word):
-            tup = Token.VALUE, word
+            tup = Token(Tid.VALUE, word)
         elif re.search(FLOAT_PATTERN, word):
-            tup = Token.VALUE, float(word)
+            tup = Token(Tid.VALUE, float(word))
         elif re.search(INT_PATTERN, word):
-            tup = Token.VALUE, int(word)
+            tup = Token(Tid.VALUE, int(word))
         elif re.search(FILE_PATTERN, word):
-            tup = Token.FILE, word
+            tup = Token(Tid.FILE, word)
         elif re.search(NAME_PATTERN, word):
-            tup = Token.NAME, word
+            tup = Token(Tid.NAME, word)
         else:
-            tup = Token.INVALID, word
+            tup = Token(Tid.INVALID, word)
         return tup
 
-    def next_token(self) -> tuple[Token, Union[str, int, float]]:
+    def next_token(self) -> Token:
         """
         Return the next token in the input stream
         :return: tuple containing the token and value
@@ -163,22 +217,22 @@ class Lexer:
             elif self.state == State.STRING:
                 if c in STRING_DELIMITERS:
                     self.state = State.START
-                    return Token.STRING, word  # end of string
+                    return Token(Tid.STRING, word)  # end of string
                 else:
                     word += c
 
         # Check for unterminated string
         if self.state == State.STRING:
-            return Token.INVALID, f'{UNTERMINATED_STRING} [{word[0:10]}...]'
+            return Token(Tid.INVALID, f'{UNTERMINATED_STRING} [{word[0:10]}...]')
         else:
-            return Token.EOS, ''
+            return Token(Tid.EOS, '')
 
 
 if __name__ == '__main__':
     lx = Lexer()
-    lx.input('item "this is a string" list 20/10/2022 07/24 3.4 7 -s -n -t -fn -fv -no')
+    lx.input('item name "this is a string" list 20/10/2022 07/24 3.4 7 -s -n -t -fn -fv -no')
     while True:
-        t, v = lx.next_token()
-        print(t, v)
-        if t in [Token.EOS, Token.INVALID]:
+        tok = lx.next_token()
+        print(tok)
+        if tok.tid in [Tid.EOS, Tid.INVALID]:
             break

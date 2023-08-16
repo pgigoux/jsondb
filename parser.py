@@ -1,7 +1,6 @@
-from typing import Union
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE
+from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE
 
 
 def trace(label: str, *args):
@@ -29,137 +28,134 @@ class Parser:
         self.cp = CommandProcessor()
 
     @staticmethod
-    def error(error_message: str, token: Token, value: Union[int, float, str]):
+    def error(error_message: str, token: Token):
         """
         Print error message
         :param error_message: message text
         :param token: offending token
-        :param value: token value
         :return:
         """
-        if token == Token.INVALID:
-            print(f'Invalid token {token} {value}')
+        if token.tid == Tid.INVALID:
+            print(f'Invalid token {token}')
         else:
-            print(f'{error_message} {token} {value}')
+            print(f'{error_message} {token}')
 
-    def get_token(self) -> tuple[Token, Union[str, int, float]]:
+    def get_token(self) -> Token:
         """
         Get next token from the lexer
         :return: token id and value
         """
-        token, value = self.lexer.next_token()
-        print(f'get_token: {token} {value}')
-        return token, value
+        token = self.lexer.next_token()
+        trace('get_token', token)
+        return token
 
-    def field_command(self, token: Token, value: str):
+    def field_command(self, token: Token):
         """
         field_command : FIELD subcommand
         :param token: subcommand token
-        :param value: subcommand value
         """
         trace('field_command', token)
-        if token == Token.LIST:
+        if token.tid == Tid.LIST:
             self.cp.field_list()
-        elif token == Token.DUMP:
+        elif token.tid == Tid.DUMP:
             self.cp.field_dump()
-        elif token == Token.COUNT:
+        elif token.tid == Tid.COUNT:
             self.cp.field_count()
         else:
-            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
-    def tag_command(self, token: Token, value: str):
+    def tag_command(self, token: Token):
         """
         tag_command : TAG subcommand
         :param token: subcommand token
-        :param value: subcommand value
         """
         trace('tag_command', token)
-        if token == Token.LIST:
+        if token.tid == Tid.LIST:
             self.cp.tag_list()
-        elif token == Token.DUMP:
+        elif token.tid == Tid.DUMP:
             self.cp.tag_dump()
-        elif token == Token.COUNT:
+        elif token.tid == Tid.COUNT:
             self.cp.tag_count()
         else:
-            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
     def item_search_command(self):
         """
         item_search_command: ITEM SEARCH NAME search_option_list
         :return:
         """
-        tok, value = self.get_token()
-        if tok == Token.NAME:
+        tok = self.get_token()
+        trace('item_search_command', tok)
+        if tok.tid == Tid.NAME:
+            pattern = tok.value
             # Process flags
             name_flag, tag_flag, field_name_flag, field_value_flag, note_flag = (False, False, False, False, False)
             while True:
-                tok, _ = self.get_token()
-                if tok == Token.EOS:
+                tok = self.get_token()
+                if tok.tid == Tid.EOS:
                     break
-                elif tok == Token.SW_NAME:
+                elif tok.tid == Tid.SW_NAME:
                     name_flag = True
-                elif tok == Token.SW_TAG:
+                elif tok.tid == Tid.SW_TAG:
                     tag_flag = True
-                elif tok == Token.SW_FIELD_NAME:
+                elif tok.tid == Tid.SW_FIELD_NAME:
                     field_name_flag = True
-                elif tok == Token.SW_FIELD_VALUE:
+                elif tok.tid == Tid.SW_FIELD_VALUE:
                     field_value_flag = True
-                elif tok == Token.SW_NOTE:
+                elif tok.tid == Tid.SW_NOTE:
                     note_flag = True
 
             # Enable search by item name if no flags were specified
             if not any((name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)):
                 name_flag = True
 
-            self.cp.item_search(value, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
+            trace('to search', tok.value, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
+            self.cp.item_search(pattern, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
         else:
-            self.error('name expected', tok, value)
+            self.error('name expected', tok)
 
-    def item_command(self, token: Token, value: str):
+    def item_command(self, token: Token):
         """
         item_command : ITEM subcommand
         :param token: subcommand token
-        :param value: subcommand value
         """
         trace('item_command', token)
-        if token == Token.LIST:
+        if token.tid == Tid.LIST:
             self.cp.item_list()
-        elif token in [Token.PRINT, Token.DUMP]:
-            tok, uid = self.get_token()
-            trace('print,dump', tok, uid)
-            if tok == Token.VALUE:
-                if token == Token.PRINT:
-                    self.cp.item_print(uid)
+        elif token.tid in [Tid.PRINT, Tid.DUMP]:
+            tok = self.get_token()
+            trace('print & dump', tok)
+            if tok.tid == Tid.VALUE:
+                if token == Tid.PRINT:
+                    self.cp.item_print(tok.value)
                 else:
-                    self.cp.item_dump(uid)
+                    self.cp.item_dump(tok.value)
             else:
-                print('name expected')
-        elif token == Token.COUNT:
+                print('item id expected')
+        elif token.tid == Tid.COUNT:
             self.cp.item_count()
-        elif token == Token.SEARCH:
+        elif token.tid == Tid.SEARCH:
             self.item_search_command()
         else:
-            self.error(ERROR_UNKNOWN_SUBCOMMAND, token, value)
+            self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
-    def action_command(self, cmd_token: Token, cmd_value, sub_token: Token, sub_value: str):
+    def action_command(self, cmd_token: Token, sub_token: Token):
         """
         action_command : command subcommand
         :param cmd_token: command token
-        :param cmd_value: command value
         :param sub_token: subcommand token
-        :param sub_value: subcommand value
         """
-        trace('action_command', cmd_token, cmd_value, sub_token, sub_value)
-        if cmd_token == Token.ITEM:
-            self.item_command(sub_token, sub_value)
-        elif cmd_token == Token.FIELD:
-            self.field_command(sub_token, sub_value)
-        elif cmd_token == Token.TAG:
-            self.tag_command(sub_token, sub_value)
+        trace('action_command', cmd_token, sub_token)
+        if cmd_token.tid == Tid.ITEM:
+            self.item_command(sub_token)
+        elif cmd_token.tid == Tid.FIELD:
+            self.field_command(sub_token)
+        elif cmd_token.tid == Tid.TAG:
+            self.tag_command(sub_token)
         else:
-            self.error(ERROR_UNKNOWN_COMMAND, cmd_token, cmd_value)  # should never get here
+            self.error(ERROR_UNKNOWN_COMMAND, cmd_token)  # should never get here
 
-    def database_commands(self, token: Token, value: str):
+    def database_commands(self, token: Token):
         """
         database_commands: CREATE [file_name] |
                               READ [file_name] |
@@ -167,58 +163,58 @@ class Parser:
                               EXPORT file_name |
                               DUMP
         :param token: next token
-        :param value: token value
         """
-        trace('input_output_command', token)
-        if token in [Token.CREATE, Token.READ]:
+        trace('database_command', token)
+        if token.tid in [Tid.CREATE, Tid.READ]:
 
             # Get file name
-            tok, file_name = self.get_token()
-            if tok == Token.EOS:
+            tok = self.get_token()
+            if tok.tid == Tid.EOS:
                 file_name = DEFAULT_DATABASE_NAME
                 trace('no file name', file_name)
-            elif tok == Token.FILE:
+            elif tok.tid == Tid.FILE:
+                file_name = tok.value
                 trace('file name', file_name)
             else:
-                self.error(ERROR_BAD_FILENAME, token, file_name)
+                self.error(ERROR_BAD_FILENAME, token)
                 return
 
             # Run command
-            if token == Token.READ:
+            if token.tid == Tid.READ:
                 trace('read', file_name)
                 self.cp.read_database(file_name)
-            elif token == Token.CREATE:
-                todo('create', file_name)
+            elif token.tid == Tid.CREATE:
+                todo('create')
             else:
-                self.error(ERROR_UNKNOWN_COMMAND, token, value)
+                self.error(ERROR_UNKNOWN_COMMAND, token)    # should never get here
 
-        elif token == Token.WRITE:
-            trace('input_output', 'write')
+        elif token == Tid.WRITE:
+            todo('input_output', 'write')
 
-        elif token == Token.EXPORT:
-            # Get file name and run command
-            tok, file_name = self.get_token()
-            trace('input_output', 'export', tok, file_name)
-            if tok == Token.FILE:
-                todo('export', file_name)
+        elif token == Tid.EXPORT:
+            tok = self.get_token()
+            trace('input_output', 'export', tok)
+            if tok.tid == Tid.FILE:
+                todo('export', tok.value)
             else:
-                self.error(ERROR_BAD_FILENAME, token, file_name)
-        elif token == Token.DUMP:
+                self.error(ERROR_BAD_FILENAME, tok)
+
+        elif token.tid == Tid.DUMP:
             self.cp.dump_database()
         else:
-            self.error(ERROR_UNKNOWN_COMMAND, token, value)  # should never get here
+            self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
-    def subcommand(self) -> tuple[Token, Union[str, int, float]]:
+    def subcommand(self) -> Token:
         """
         Check whether the next token is a subcommand
-        :return: token and value, or Token.INVALID if not i/o
+        :return: token, or invalid token if not subcommand
         """
-        token, value = self.lexer.next_token()
-        trace('subcommand', token, value)
-        if token in LEX_SUBCOMMANDS:
-            return token, value
+        token = self.lexer.next_token()
+        trace('subcommand', token)
+        if token.tid in LEX_SUBCOMMANDS:
+            return token
         else:
-            return Token.INVALID, value
+            return Token(Tid.INVALID, token.value)
 
     def command(self) -> bool:
         """
@@ -228,21 +224,21 @@ class Parser:
                   misc_command
         :return True if the QUIT command is received, False otherwise
         """
-        token, value = self.lexer.next_token()
-        trace('command', token, value)
+        token = self.lexer.next_token()
+        trace('command', token)
         quit_flag = False
-        if token in LEX_ACTIONS:
-            sub_token, value = self.subcommand()
-            if sub_token != Token.INVALID:
-                self.action_command(token, value, sub_token, value)
+        if token.tid in LEX_ACTIONS:
+            sub_token = self.subcommand()
+            if sub_token.tid != Tid.INVALID:
+                self.action_command(token, sub_token)
             else:
-                self.error('Invalid subcommand', sub_token, value)
-        elif token in LEX_DATABASE:
-            self.database_commands(token, value)
-        elif token == Token.EOS:
+                self.error('Invalid subcommand', sub_token)
+        elif token.tid in LEX_DATABASE:
+            self.database_commands(token)
+        elif token.tid == Tid.EOS:
             pass
         else:
-            self.error(ERROR_UNKNOWN_COMMAND, token, value)
+            self.error(ERROR_UNKNOWN_COMMAND, token)
         return quit_flag
 
     def execute(self, command: str):
@@ -264,15 +260,16 @@ class Parser:
 
 
 if __name__ == '__main__':
-    parser = Parser()
-    while True:
-        try:
-            input_command = input('db> ')
-            input_command = input_command.strip()
-            if len(input_command) > 0:
-                if parser.execute(input_command):
-                    # quit received
-                    print('Exiting..')
-                    break
-        except (KeyboardInterrupt, EOFError):
-            break
+    pass
+    # parser = Parser()
+    # while True:
+    #     try:
+    #         input_command = input('db> ')
+    #         input_command = input_command.strip()
+    #         if len(input_command) > 0:
+    #             if parser.execute(input_command):
+    #                 # quit received
+    #                 print('Exiting..')
+    #                 break
+    #     except (KeyboardInterrupt, EOFError):
+    #         break
