@@ -141,7 +141,9 @@ class Parser:
 
     def action_command(self, cmd_token: Token, sub_token: Token):
         """
-        action_command : command subcommand
+        action_command : ITEM subcommand |
+                         FIELD subcommand |
+                         TAG subcommand
         :param cmd_token: command token
         :param sub_token: subcommand token
         """
@@ -216,17 +218,14 @@ class Parser:
         else:
             return Token(Tid.INVALID, token.value)
 
-    def command(self) -> bool:
+    def command(self):
         """
         A command can be either an action or and input/output command
         command : action_command |
-                  input_output_command |
-                  misc_command
-        :return True if the QUIT command is received, False otherwise
+                  database_command |
         """
         token = self.lexer.next_token()
         trace('command', token)
-        quit_flag = False
         if token.tid in LEX_ACTIONS:
             sub_token = self.subcommand()
             if sub_token.tid != Tid.INVALID:
@@ -239,7 +238,6 @@ class Parser:
             pass
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)
-        return quit_flag
 
     def execute(self, command: str):
         """
