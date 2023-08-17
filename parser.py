@@ -126,7 +126,7 @@ class Parser:
             tok = self.get_token()
             trace('print & dump', tok)
             if tok.tid == Tid.VALUE:
-                if token == Tid.PRINT:
+                if token.tid == Tid.PRINT:
                     self.cp.item_print(tok.value)
                 else:
                     self.cp.item_dump(tok.value)
@@ -190,10 +190,10 @@ class Parser:
             else:
                 self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
-        elif token == Tid.WRITE:
+        elif token.tid == Tid.WRITE:
             todo('input_output', 'write')
 
-        elif token == Tid.EXPORT:
+        elif token.tid == Tid.EXPORT:
             tok = self.get_token()
             trace('input_output', 'export', tok)
             if tok.tid == Tid.FILE:
