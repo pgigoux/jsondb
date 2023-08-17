@@ -77,7 +77,7 @@ class CommandProcessor:
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for t_uid, t_name, t_count in self.db.tag_table.next():
-                print(f'{t_uid} {t_name} {t_count}')
+                print(f'{t_uid} {t_count:4d} {t_name}')
 
     def tag_dump(self):
         if self.db_loaded():
@@ -98,7 +98,7 @@ class CommandProcessor:
             assert isinstance(self.db, Database)
             for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
                 mark = '(*)' if f_sensitive else '   '
-                print(f'{f_uid} {mark} {f_name} {f_count}')
+                print(f'{f_uid} {f_count:4d} {mark} {f_name}')
 
     def field_dump(self):
         if self.db_loaded():
