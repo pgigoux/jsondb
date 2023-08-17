@@ -20,6 +20,14 @@ class Element(ABC):
         pass
 
     @abstractmethod
+    def get_name(self):
+        """
+        Return the element unique identifier
+        :return:
+        """
+        pass
+
+    @abstractmethod
     def get_id(self):
         """
         Return the element unique identifier
@@ -267,6 +275,9 @@ class Item(Element):
         """
         return self.uid
 
+    def get_field_names(self):
+        return [x.get_name() for x in self.field_collection.next()]
+
     def next_field(self) -> Generator[Field, None, None]:
         """
         Return the next field in an item
@@ -356,6 +367,8 @@ if __name__ == '__main__':
     i2 = Item('two', ['c', 'd'], 'note 2', 3456, fc2)
     i3 = Item('three', ['e', 'f'], 'note 3', 68966, fc1)
     i4 = Item('four', ['e', 'f'], 'note 3', 16443, fc2)
+
+    print('--', i4.get_field_names())
 
     ic = ItemCollection()
     ic.add(i1)
