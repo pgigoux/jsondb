@@ -86,7 +86,7 @@ class Parser:
         """
         tok = self.get_token()
         trace('item_search_command', tok)
-        if tok.tid == Tid.NAME:
+        if tok.tid in [Tid.NAME, Tid.STRING]:
             pattern = tok.value
             # Process flags
             name_flag, tag_flag, field_name_flag, field_value_flag, note_flag = (False, False, False, False, False)
@@ -188,7 +188,7 @@ class Parser:
             elif token.tid == Tid.CREATE:
                 todo('create')
             else:
-                self.error(ERROR_UNKNOWN_COMMAND, token)    # should never get here
+                self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
         elif token == Tid.WRITE:
             todo('input_output', 'write')
@@ -209,11 +209,13 @@ class Parser:
     def subcommand(self) -> Token:
         """
         Check whether the next token is a subcommand
-        :return: token, or invalid token if not subcommand
+        :return: token, or invalid/eos if not subcommand
         """
         token = self.lexer.next_token()
         trace('subcommand', token)
         if token.tid in LEX_SUBCOMMANDS:
+            return token
+        elif token.tid == Tid.EOS:
             return token
         else:
             return Token(Tid.INVALID, token.value)
@@ -228,10 +230,10 @@ class Parser:
         trace('command', token)
         if token.tid in LEX_ACTIONS:
             sub_token = self.subcommand()
-            if sub_token.tid != Tid.INVALID:
+            if sub_token.tid not in [Tid.INVALID, Tid.EOS]:
                 self.action_command(token, sub_token)
             else:
-                self.error('Invalid subcommand', sub_token)
+                self.error('invalid or missing subcommand', sub_token)
         elif token.tid in LEX_DATABASE:
             self.database_commands(token)
         elif token.tid == Tid.EOS:
