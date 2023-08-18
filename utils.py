@@ -121,5 +121,25 @@ def get_password() -> str:
     return getpass.getpass('Password: ').strip()
 
 
+def trace(label: str, *args):
+    """
+    Trace program execution (used for debugging)
+    :param label: label
+    :param args: arguments
+    :return:
+    """
+    print(f'trace: {label}: ' + str([f'{x}' for x in args]))
+
+
+def todo(label: str, *args):
+    """
+    Placeholder used for code that's not yet implemented (used for debugging)
+    :param label:
+    :param args:
+    :return:
+    """
+    print(f'TODO: {label}: ' + str([f'{x}' for x in args]))
+
+
 if __name__ == '__main__':
     print(Uid.get_uid())
