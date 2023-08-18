@@ -1,6 +1,12 @@
+import re
+
 from db import Database, DEFAULT_DATABASE_NAME
 from items import Item, Field
-from utils import get_password, timestamp_to_time
+from utils import get_password, timestamp_to_time, trace, todo
+
+
+def mark(sensitive: bool):
+    return '(*)' if sensitive else '   '
 
 
 class CommandProcessor:
@@ -97,8 +103,8 @@ class CommandProcessor:
         if self.db_loaded():
             assert isinstance(self.db, Database)
             for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
-                mark = '(*)' if f_sensitive else '   '
-                print(f'{f_uid} {f_count:4d} {mark} {f_name}')
+                # mark = '(*)' if f_sensitive else '   '
+                print(f'{f_uid} {f_count:4d} {mark(f_sensitive)} {f_name}')
 
     def field_dump(self):
         if self.db_loaded():
@@ -109,6 +115,23 @@ class CommandProcessor:
         if self.db_loaded():
             assert isinstance(self.db, Database)
             print(len(self.db.field_table))
+
+    def field_search(self, pattern: str):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            for f_uid, f_name, f_count, f_sensitive in self.db.field_table.next():
+                if re.search(pattern, f_name):
+                    print(f'{f_uid} {f_count:4d} {mark(f_sensitive)} {f_name}')
+
+    def field_add(self, name: str, sensitive_flag: bool):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            todo('field_add', name, sensitive_flag)
+
+    def field_delete(self, name: str):
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            todo('field_delete', name)
 
     # -----------------------------------------------------------------
     # Item commands

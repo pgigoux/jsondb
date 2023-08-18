@@ -1,14 +1,7 @@
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE
-
-
-def trace(label: str, *args):
-    print(f'{label}: ' + str([f'{x}' for x in args]))
-
-
-def todo(label: str, *args):
-    print(f'RUN: {label}: ' + str([f'{x}' for x in args]))
+from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_STRINGS
+from utils import trace, todo
 
 
 # Error messages
@@ -61,6 +54,24 @@ class Parser:
             self.cp.field_dump()
         elif token.tid == Tid.COUNT:
             self.cp.field_count()
+        elif token.tid in [Tid.SEARCH, Tid.DELETE]:
+            tok = self.get_token()
+            if tok.tid in LEX_STRINGS:
+                if token.tid == Tid.SEARCH:
+                    trace('field search', tok)
+                    self.cp.field_search(tok.value)
+                else:
+                    trace('field delete', tok)
+                    self.cp.field_delete(tok.value)
+            else:
+                self.error('bad/missing field name', tok)
+        elif token.tid == Tid.ADD:
+            tok = self.get_token()
+            trace('field delete', tok)
+            if tok in LEX_STRINGS:
+                s_tok = self.get_token()
+                sensitive = True if s_tok.tid == Tid.SW_SENSITIVE else False
+                self.cp.field_add(tok.value, sensitive)
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
@@ -86,7 +97,7 @@ class Parser:
         """
         tok = self.get_token()
         trace('item_search_command', tok)
-        if tok.tid in [Tid.NAME, Tid.STRING]:
+        if tok.tid in LEX_STRINGS:
             pattern = tok.value
             # Process flags
             name_flag, tag_flag, field_name_flag, field_value_flag, note_flag = (False, False, False, False, False)
