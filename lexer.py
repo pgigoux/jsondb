@@ -53,6 +53,7 @@ LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
 LEX_DATABASE = [Tid.CREATE, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
 LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
                    Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
+LEX_STRINGS = [Tid.NAME, Tid.STRING]
 
 # Regular expressions
 LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
