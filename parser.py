@@ -3,7 +3,6 @@ from command import CommandProcessor
 from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_STRINGS
 from utils import trace, todo
 
-
 # Error messages
 ERROR_UNKNOWN_COMMAND = 'unknown command'
 ERROR_UNKNOWN_SUBCOMMAND = 'unknown subcommand'
@@ -21,17 +20,14 @@ class Parser:
         self.cp = CommandProcessor()
 
     @staticmethod
-    def error(error_message: str, token: Token):
+    def error(error_message: str, *args):
         """
         Print error message
         :param error_message: message text
-        :param token: offending token
+        :param args: arguments
         :return:
         """
-        if token.tid == Tid.INVALID:
-            print(f'Invalid token {token}')
-        else:
-            print(f'{error_message} {token}')
+        print(f'Error: {error_message}: ' + str([f'{x}' for x in args]))
 
     def get_token(self) -> Token:
         """
@@ -67,8 +63,8 @@ class Parser:
                 self.error('bad/missing field name', tok)
         elif token.tid == Tid.ADD:
             tok = self.get_token()
-            trace('field delete', tok)
-            if tok in LEX_STRINGS:
+            trace('field add', tok)
+            if tok.tid in LEX_STRINGS:
                 s_tok = self.get_token()
                 sensitive = True if s_tok.tid == Tid.SW_SENSITIVE else False
                 self.cp.field_add(tok.value, sensitive)
@@ -87,6 +83,21 @@ class Parser:
             self.cp.tag_dump()
         elif token.tid == Tid.COUNT:
             self.cp.tag_count()
+        elif token.tid == Tid.ADD:
+            tok = self.get_token()
+            if tok.tid in LEX_STRINGS:
+                self.cp.tag_add(tok.value)
+        elif token.tid == Tid.RENAME:
+            tok1 = self.get_token()
+            tok2 = self.get_token()
+            if tok1.tid in LEX_STRINGS and tok2.tid in LEX_STRINGS:
+                self.cp.tag_rename(tok1.value, tok2.value)
+            else:
+                self.error('bad tag name', tok1, tok2)
+        elif token.tid == Tid.DELETE:
+            tok = self.get_token()
+            if tok.tid in LEX_STRINGS:
+                self.cp.tag_delete(tok.value)
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
@@ -133,12 +144,14 @@ class Parser:
         trace('item_command', token)
         if token.tid == Tid.LIST:
             self.cp.item_list()
-        elif token.tid in [Tid.PRINT, Tid.DUMP]:
+        elif token.tid in [Tid.PRINT, Tid.DUMP, Tid.DELETE]:
             tok = self.get_token()
             trace('print & dump', tok)
             if tok.tid == Tid.VALUE:
                 if token.tid == Tid.PRINT:
                     self.cp.item_print(tok.value)
+                elif token.tid == Tid.DELETE:
+                    self.cp.item_delete(tok.value)
                 else:
                     self.cp.item_dump(tok.value)
             else:
@@ -147,6 +160,10 @@ class Parser:
             self.cp.item_count()
         elif token.tid == Tid.SEARCH:
             self.item_search_command()
+        elif token.tid == Tid.ADD:
+            todo('item add')
+        elif token.tid == Tid.EDIT:
+            todo('item edit')
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
@@ -195,25 +212,25 @@ class Parser:
             # Run command
             if token.tid == Tid.READ:
                 trace('read', file_name)
-                self.cp.read_database(file_name)
+                self.cp.database_read(file_name)
             elif token.tid == Tid.CREATE:
-                todo('create')
+                self.cp.database_create(file_name)
             else:
                 self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
         elif token.tid == Tid.WRITE:
-            todo('input_output', 'write')
+            todo('write', token.value)
 
         elif token.tid == Tid.EXPORT:
             tok = self.get_token()
-            trace('input_output', 'export', tok)
+            trace('export', tok)
             if tok.tid == Tid.FILE:
                 todo('export', tok.value)
             else:
                 self.error(ERROR_BAD_FILENAME, tok)
 
         elif token.tid == Tid.DUMP:
-            self.cp.dump_database()
+            self.cp.database_dump()
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
