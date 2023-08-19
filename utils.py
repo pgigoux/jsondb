@@ -130,6 +130,14 @@ def sensitive_mark(sensitive: bool):
     return '(*)' if sensitive else '   '
 
 
+def print_line(width=70):
+    """
+    Print an horizontal line
+    :param: with: line with in characters
+    """
+    print(u'\u2015' * width)
+
+
 def trace(label: str, *args):
     """
     Trace program execution (used in debugging)
@@ -138,19 +146,6 @@ def trace(label: str, *args):
     :return:
     """
     print(f'TRACE: {label}: ' + str([f'{x}' for x in args]))
-
-
-def error(label: str, e: Exception | None):
-    """
-    Report an error and the optional exception
-    :param label: error message
-    :param e: exception associated to the error (optional)
-    :return:
-    """
-    if e is None:
-        print(f'Error: {label}')
-    else:
-        print(f'Error: {label} -> repr({e})')
 
 
 def todo(label: str, *args):
