@@ -108,9 +108,9 @@ class Lexer:
         self.keywords = {
             'item': Tid.ITEM, 'field': Tid.FIELD, 'tag': Tid.TAG,
             'create': Tid.CREATE, 'read': Tid.READ, 'write': Tid.WRITE,
-            'export': Tid.EXPORT, 'dump': Tid.DUMP,
-            'list': Tid.LIST, 'search': Tid.SEARCH, 'print': Tid.PRINT,
-            'count': Tid.COUNT, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
+            'export': Tid.EXPORT, 'print': Tid.PRINT, 'dump': Tid.DUMP,
+            'list': Tid.LIST, 'count': Tid.COUNT, 'search': Tid.SEARCH,
+            'add': Tid.ADD, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
             # aliases
             'save': Tid.WRITE, 'ren': Tid.RENAME, 'del': Tid.DELETE
         }
