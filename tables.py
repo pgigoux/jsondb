@@ -1,9 +1,9 @@
 from typing import Optional
 from utils import Uid
-from common import KEY_NAME, KEY_UID, FIELD_SENSITIVE_KEY
+from common import KEY_NAME, KEY_UID, KEY_COUNT, FIELD_SENSITIVE_KEY
 
 # List of standard table keys. Used to exclude keys from the user defined attributes
-TABLE_KEY_LIST = [KEY_NAME, KEY_UID]
+TABLE_KEY_LIST = [KEY_NAME, KEY_UID, KEY_COUNT]
 
 
 class Table:
@@ -101,18 +101,24 @@ class Table:
         else:
             raise KeyError(f'{name} already exists')
 
-    def remove(self, uid: int):
+    def remove(self, name='', uid: Optional[int] = None):
         """
         Remove item from the table
+        :param name: name
         :param uid: unique identifier
         :raise: KeyError if the uid is not found
         """
-        if uid in self.uid_dict:
+        if name and name in self.name_dict:
+            uid = self.name_dict[name]
+        if uid is not None and uid in self.uid_dict:
             name = self.uid_dict[uid]
-            del (self.name_dict[name])
-            del (self.uid_dict[uid])
-            del (self.count_dict[uid])
-            del (self.attr_dict[uid])
+            if self.count(uid=uid) == 0:
+                del (self.name_dict[name])
+                del (self.uid_dict[uid])
+                del (self.count_dict[uid])
+                del (self.attr_dict[uid])
+            else:
+                raise ValueError(f'count is not zero')
         else:
             raise KeyError(f'{uid} not in the table')
 
@@ -182,7 +188,7 @@ class Table:
         output_list = []
         for name in self.name_dict:
             uid = self.name_dict[name]
-            d = {KEY_NAME: name, KEY_UID: uid}
+            d = {KEY_NAME: name, KEY_UID: uid, KEY_COUNT: self.count_dict[uid]}
             d.update(self.attr_dict[uid])
             output_list.append(d)
         return output_list
@@ -265,6 +271,10 @@ if __name__ == '__main__':
     t.add(name='two', value=6)
     t.increment(name='one')
     t.dump()
+    t.remove('one')
+    t.remove(name='two')
+    t.dump()
+    exit(0)
 
     print('-' * 10)
     print(t.get_attributes(1))
