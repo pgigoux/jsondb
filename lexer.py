@@ -134,34 +134,6 @@ class Lexer:
         self.state = State.START
         self.count = 0
 
-    # def token(self, word: str) -> tuple[Token, Union[str, int, float]]:
-    #     """
-    #     Check for matching patterns and return token code and data.
-    #     Keywords are always checked first.
-    #     The order patterns are checked matters.
-    #     :param word:
-    #     :return: tuple containing the toekn and its value
-    #     """
-    #     if word in self.keywords:
-    #         tup = self.keywords[word], word
-    #     elif word in self.switches:
-    #         tup = self.switches[word], True
-    #     elif re.search(LONG_DATE_PATTERN, word) \
-    #             or re.search(SHORT_DATE_PATTERN, word) \
-    #             or re.search(MONTH_YEAR_PATTERN, word):
-    #         tup = Token.VALUE, word
-    #     elif re.search(FLOAT_PATTERN, word):
-    #         tup = Token.VALUE, float(word)
-    #     elif re.search(INT_PATTERN, word):
-    #         tup = Token.VALUE, int(word)
-    #     elif re.search(FILE_PATTERN, word):
-    #         tup = Token.FILE, word
-    #     elif re.search(NAME_PATTERN, word):
-    #         tup = Token.NAME, word
-    #     else:
-    #         tup = Token.INVALID, word
-    #     return tup
-
     def token(self, word: str) -> Token:
         """
         Check for matching patterns and return token code and data.
