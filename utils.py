@@ -121,21 +121,43 @@ def get_password() -> str:
     return getpass.getpass('Password: ').strip()
 
 
+def sensitive_mark(sensitive: bool):
+    """
+    Return a label that can be used to mark sensitive information in reports
+    :param sensitive: sensitive information?
+    :return:
+    """
+    return '(*)' if sensitive else '   '
+
+
 def trace(label: str, *args):
     """
-    Trace program execution (used for debugging)
+    Trace program execution (used in debugging)
     :param label: label
     :param args: arguments
     :return:
     """
-    print(f'trace: {label}: ' + str([f'{x}' for x in args]))
+    print(f'TRACE: {label}: ' + str([f'{x}' for x in args]))
+
+
+def error(label: str, e: Exception | None):
+    """
+    Report an error and the optional exception
+    :param label: error message
+    :param e: exception associated to the error (optional)
+    :return:
+    """
+    if e is None:
+        print(f'Error: {label}')
+    else:
+        print(f'Error: {label} -> repr({e})')
 
 
 def todo(label: str, *args):
     """
-    Placeholder used for code that's not yet implemented (used for debugging)
-    :param label:
-    :param args:
+    Placeholder used for code that's not yet implemented (used in debugging)
+    :param label: label
+    :param args: arguments
     :return:
     """
     print(f'TODO: {label}: ' + str([f'{x}' for x in args]))
