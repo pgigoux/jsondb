@@ -182,7 +182,7 @@ class Field(Element):
     def export(self, crypt: Optional[Crypt] = None) -> dict:
         """
         Convert field into a dictionary
-        Sensitive values are returned in plain text in a decryption key is provided.
+        Sensitive values are returned in plain text if a decryption key is provided.
         :param crypt: decryption key (optional)
         :return: dictionary with field elements (name, value, sensitive flag)
         """
