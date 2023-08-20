@@ -183,12 +183,13 @@ class Table:
         """
         Return table elements as a list of dictionaries where each element is the name,
         the unique identifier and the attributes.
+        The count is not exported since it's set dinamically at run time.
         :return: list of elements
         """
         output_list = []
         for name in self.name_dict:
             uid = self.name_dict[name]
-            d = {KEY_NAME: name, KEY_UID: uid, KEY_COUNT: self.count_dict[uid]}
+            d = {KEY_NAME: name, KEY_UID: uid}
             d.update(self.attr_dict[uid])
             output_list.append(d)
         return output_list
@@ -271,6 +272,7 @@ if __name__ == '__main__':
     t.add(name='two', value=6)
     t.increment(name='one')
     t.dump()
+    print(t.export())
     t.remove('one')
     t.remove(name='two')
     t.dump()

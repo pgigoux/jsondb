@@ -118,8 +118,8 @@ def test_tag_table():
     tt.add('two', uid='2000')
     tt.increment(name='one')
 
-    assert tt.export() == [{KEY_NAME: 'one', KEY_UID: 1000, KEY_COUNT: 1},
-                           {KEY_NAME: 'two', KEY_UID: 2000, KEY_COUNT: 0}]
+    assert tt.export() == [{KEY_NAME: 'one', KEY_UID: 1000},
+                           {KEY_NAME: 'two', KEY_UID: 2000}]
 
 
 def test_field_table():
@@ -133,8 +133,8 @@ def test_field_table():
     assert ft.is_sensitive(1000) is True
     assert ft.is_sensitive(2000) is False
 
-    assert ft.export() == [{KEY_NAME: 'one', KEY_UID: 1000, KEY_COUNT: 1, FIELD_SENSITIVE_KEY: True},
-                           {KEY_NAME: 'two', KEY_UID: 2000, KEY_COUNT: 0, FIELD_SENSITIVE_KEY: False}]
+    assert ft.export() == [{KEY_NAME: 'one', KEY_UID: 1000, FIELD_SENSITIVE_KEY: True},
+                           {KEY_NAME: 'two', KEY_UID: 2000, FIELD_SENSITIVE_KEY: False}]
 
 
 if __name__ == '__main__':
