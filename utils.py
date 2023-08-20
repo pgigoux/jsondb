@@ -1,5 +1,4 @@
 import string
-import uuid
 import time
 import re
 import getpass
