@@ -4,7 +4,7 @@ from items import Item, Field, FieldCollection
 
 RANDOM_WORDS = ['cow', 'horse', 'sheep', 'duck', 'chicken', 'donkey',
                 'apple', 'orange', 'banana', 'tomato', 'avocado', 'parsley',
-                'proton', 'neutron', 'electron', 'muon', 'tau', 'neutrino']
+                'proton', 'neutron', 'electron', 'tau', 'neutrino']
 
 RANDOM_EMAIL_SERVERS = ['gmail.com', 'hotmail.com', 'yahoo.com', 'yahoo.es', 'outlook.com']
 
@@ -82,17 +82,17 @@ def random_web_server() -> str:
 
 def random_email() -> str:
     """
-    Return a random email of the form 'jdoe<number>@<server>'
+    Return a random email of the form 'user<number>@<server>'
     :return: random email address
     """
-    return f'jdoe{str(random_int(max_int=5000))}@' + \
+    return f'user{str(random_int(max_int=5000))}@' + \
            f'{RANDOM_EMAIL_SERVERS[random_int(max_int=len(RANDOM_EMAIL_SERVERS) - 1)]}'
 
 
 def random_password():
     """
     Return a random password of the for <word>-<word>-<word>
-    :return: random passord
+    :return: random password
     """
     n_max = len(RANDOM_WORDS) - 1
     return f'{RANDOM_WORDS[random_int(max_int=n_max)]}-' + \
@@ -110,7 +110,7 @@ def random_field() -> Field:
 
 def random_field_list() -> list[Field]:
     """
-    Return a variable lenght list with random fields
+    Return a variable length list with random fields
     :return:
     """
     return [random_field() for _ in range(random.randrange(1, 5))]
