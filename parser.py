@@ -155,15 +155,19 @@ class Parser:
                 else:
                     self.cp.item_dump(tok.value)
             else:
-                print('item id expected')
+                self.error('item id expected')
         elif token.tid == Tid.COUNT:
             self.cp.item_count()
         elif token.tid == Tid.SEARCH:
             self.item_search_command()
         elif token.tid == Tid.ADD:
-            todo('item add')
+            self.cp.item_add()
         elif token.tid == Tid.EDIT:
-            todo('item edit')
+            tok = self.get_token()
+            if tok.tid == Tid.VALUE:
+                self.cp.item_edit(tok.value)
+            else:
+                self.error('item id expected')
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 

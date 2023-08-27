@@ -300,6 +300,24 @@ class CommandProcessor:
             assert isinstance(self.db, Database)
             todo('item_delete', uid)
 
+    def item_add(self):
+        trace('item_add')
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+
+    def item_edit(self, uid: int):
+        trace('item_edit', uid)
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            try:
+                item = self.db.item_collection.get(uid)
+                assert isinstance(item, Item)
+            except Exception as e:
+                self.error(f'item {uid} does not exist', e)
+
+    # def item_copy(self, uid):
+    #     todo('item_copy')
+
     def item_dump(self, uid: int):
         trace('item_dump', uid)
         if self.db_loaded():
