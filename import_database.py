@@ -170,7 +170,7 @@ def import_tags(db: Database, folder_list: list):
     """
     Create the tag table from the database folder list.
     :param db: database
-    :param folder_list:
+    :param folder_list: list of folders/tags
     :return:
     """
     for folder in folder_list:
