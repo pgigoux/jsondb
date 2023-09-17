@@ -41,7 +41,7 @@ class Tid(Enum):
     INVALID = auto()
 
 
-# DFA states
+# Lexer DFA states
 class State(Enum):
     START = auto()
     WORD = auto()
