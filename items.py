@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generator, Optional, Union
 from crypt import Crypt
-from utils import Uid, filter_control_characters
+from uid import ItemUid, FieldUid
+from utils import filter_control_characters
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
 
@@ -155,7 +156,7 @@ class Field(Element):
         self.name = name
         self.value = value
         self.sensitive = sensitive
-        self.uid = Uid.get_uid()
+        self.uid = FieldUid.get_uid()
 
     def __str__(self):
         """
@@ -270,7 +271,7 @@ class Item(Element):
         self.tags = tag_list
         self.note = note
         self.time_stamp = time_stamp
-        self.uid = Uid.get_uid() if uid is None else uid
+        self.uid = ItemUid.get_uid() if uid is None else uid
         self.field_collection = field_collection
 
     def __str__(self):
