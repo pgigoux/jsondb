@@ -186,6 +186,20 @@ class Database:
 
         return output_list
 
+    # def get_field_value(self, field: Field) -> tuple[str, bool]:
+    #     """
+    #     Return the field value and sensitive flag
+    #     Decrypt the field value if the field is sensitive and the encryption key is set.
+    #     :param field: field
+    #     :return: tuple with the field value and sensitive flag
+    #     """
+    #     f_sensitive = field.get_sensitive()
+    #     if f_sensitive and self.crypt_key:
+    #         field_value = self.crypt_key.decrypt_str2str(field.get_value())
+    #     else:
+    #         field_value = field.get_value()
+    #     return field_value, f_sensitive
+
     def export(self, crypt: Optional[Crypt] = None):
         """
         Export the database as a dictionary
