@@ -233,6 +233,14 @@ class TagTable(Table):
             uid = self.name_dict[name]
             yield uid, name, self.count(uid=uid)
 
+    def get_tag_names(self, tags: list) -> list[str]:
+        """
+        Convert a list of tag uids into a list of tag names
+        :param tags: list of tag uids
+        :return: list of tag names
+        """
+        return [self.get_name(x) for x in tags]
+
 
 class FieldTable(Table):
 
@@ -248,13 +256,27 @@ class FieldTable(Table):
         """
         super().add(name=name, uid=uid, sensitive=sensitive)
 
-    def is_sensitive(self, uid: int):
+    # def is_sensitive(self, uid: int):
+    #     """
+    #     Check whether a field is sensitive
+    #     :param uid: unique identifier
+    #     :return: True if sensitive, False otherwise
+    #     """
+    #     return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
+
+    def is_sensitive(self, name='', uid: Optional[int] = None):
         """
         Check whether a field is sensitive
+        :param name: field name
         :param uid: unique identifier
         :return: True if sensitive, False otherwise
         """
-        return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
+        if name and name in self.name_dict:
+            uid = self.name_dict[name]
+        if uid is not None and uid in self.uid_dict:
+            return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
+        else:
+            raise KeyError(f'uid {uid} not in the table')
 
     def next(self) -> tuple[str, str, int, bool]:
         """
