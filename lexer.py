@@ -29,6 +29,7 @@ class Tid(Enum):
     VALUE = auto()
     STRING = auto()
     # misc
+    REPORT = auto()
     EOS = auto()
     # switches
     SW_SENSITIVE = auto()
@@ -53,6 +54,7 @@ LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
 LEX_DATABASE = [Tid.CREATE, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
 LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
                    Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
+LEX_MISC = [Tid.REPORT]
 LEX_STRINGS = [Tid.NAME, Tid.STRING]
 
 # Regular expressions
@@ -111,6 +113,7 @@ class Lexer:
             'export': Tid.EXPORT, 'print': Tid.PRINT, 'dump': Tid.DUMP,
             'list': Tid.LIST, 'count': Tid.COUNT, 'search': Tid.SEARCH,
             'add': Tid.ADD, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
+            'report': Tid.REPORT,
             # aliases
             'save': Tid.WRITE, 'ren': Tid.RENAME, 'del': Tid.DELETE
         }

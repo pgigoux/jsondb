@@ -1,6 +1,6 @@
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_STRINGS
+from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_STRINGS
 from utils import trace, todo
 
 # Error messages
@@ -280,8 +280,17 @@ class Parser:
                 self.error('invalid or missing subcommand', sub_token)
         elif token.tid in LEX_DATABASE:
             self.database_commands(token)
+        elif token.tid in LEX_MISC:
+            self.misc_commands(token)
         elif token.tid == Tid.EOS:
             pass
+        else:
+            self.error(ERROR_UNKNOWN_COMMAND, token)
+
+    def misc_commands(self, token: Token):
+        trace('misc_command', token)
+        if token.tid == Tid.REPORT:
+            self.cp.report()
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)
 

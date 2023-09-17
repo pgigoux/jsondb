@@ -5,6 +5,7 @@ from typing import Optional
 from db import Database, DEFAULT_DATABASE_NAME
 from items import Item, Field
 from utils import get_password, timestamp_to_time, print_line, sensitive_mark, trace, todo
+from uid import TagTableUid, FieldTableUid, FieldUid, ItemUid
 
 
 class CommandProcessor:
@@ -345,6 +346,16 @@ class CommandProcessor:
         Command that will be called when the program exits
         """
         trace(f'quit_command {self.file_name}', keyboard_interrupt)
+
+    @staticmethod
+    def report():
+        """
+        Print uid report
+        """
+        TagTableUid.dump('Tag table')
+        FieldTableUid.dump('Field table')
+        ItemUid.dump('Items')
+        FieldUid.dump('Fields')
 
 
 if __name__ == '__main__':
