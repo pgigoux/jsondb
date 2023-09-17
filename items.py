@@ -164,12 +164,36 @@ class Field(Element):
         return f'uid={self.uid}, name={self.name}, value={self.value}, sensitive={self.sensitive}'
 
     def get_name(self) -> str:
+        """
+        Return field name
+        :return: field name
+        """
         return self.name
 
     def get_value(self) -> Union[str, int, float]:
+        """
+        Return raw (unencrypted) field value
+        :return: field value
+        """
         return self.value
 
+    def get_decrypted_value(self, crypt_key: Crypt) -> Union[str, int, float]:
+        """
+        Return unencrypted field value. Decryption will only be done if the crypt
+        key is defined and the field is sensitive.
+        :param crypt_key: encryption key
+        :return: decrypted value
+        """
+        if crypt_key and self.sensitive:
+            return crypt_key.decrypt_str2str(self.get_value())
+        else:
+            return self.value
+
     def get_sensitive(self) -> bool:
+        """
+        Return sensitive flag
+        :return: sensitive flag
+        """
         return self.sensitive
 
     def get_id(self) -> int:
