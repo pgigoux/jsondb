@@ -264,12 +264,13 @@ class FieldCollection(Collection):
 
 class Item(Element):
     def __init__(self, name: str, tag_list: list, note: str,
-                 time_stamp: int, field_collection: FieldCollection):
+                 time_stamp: int, field_collection: FieldCollection,
+                 uid: Optional[int] = None):
         self.name = name
         self.tags = tag_list
         self.note = note
         self.time_stamp = time_stamp
-        self.uid = Uid.get_uid()
+        self.uid = Uid.get_uid() if uid is None else uid
         self.field_collection = field_collection
 
     def __str__(self):
