@@ -9,7 +9,7 @@ def test_table():
     assert isinstance(tt, Table)
 
     # Add elements
-    tt.add(name='one')
+    tt.add(name='one', uid='1000')
     tt.add(name='two', uid=2000, value=2)
     tt.add(name='three', uid=3000, value=3)
     tt.add(name='four', uid=4000, value=4)
@@ -114,8 +114,8 @@ def test_tag_table():
     tt = TagTable()
     assert isinstance(tt, TagTable)
 
-    tt.add('one', uid='1000')
-    tt.add('two', uid='2000')
+    tt.add('one', uid=1000)
+    tt.add('two', uid=2000)
     tt.increment(name='one')
 
     assert tt.export() == [{KEY_NAME: 'one', KEY_UID: 1000},
@@ -126,12 +126,12 @@ def test_field_table():
     ft = FieldTable()
     assert isinstance(ft, FieldTable)
 
-    ft.add('one', sensitive=True, uid='1000')
+    ft.add('one', sensitive=True, uid=1000)
     ft.add('two', uid=2000)
     ft.increment(name='one')
 
-    assert ft.is_sensitive(1000) is True
-    assert ft.is_sensitive(2000) is False
+    assert ft.is_sensitive(uid=1000) is True
+    assert ft.is_sensitive(uid=2000) is False
 
     assert ft.export() == [{KEY_NAME: 'one', KEY_UID: 1000, FIELD_SENSITIVE_KEY: True},
                            {KEY_NAME: 'two', KEY_UID: 2000, FIELD_SENSITIVE_KEY: False}]
