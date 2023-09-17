@@ -74,10 +74,13 @@ subdictionaries. Only a few elements in the items are really relevant.
 """
 import json
 import argparse
+import sys
+
 from db import Database
 from crypt import Crypt
+from uid import TagTableUid
 from items import FieldCollection, Item, Field
-from utils import Uid, trimmed_string, get_password
+from utils import trimmed_string, get_password
 from common import DEFAULT_DATABASE_NAME
 
 # Files used to save tables into separate files
@@ -88,6 +91,8 @@ TAG_FILE_NAME = 'tags.csv'
 TAG_DEFAULT = 'default'
 
 # Dictionary used to map the tag identifiers in the input file to new ids
+# The dictionary will be indexed by the tag uid from the file
+# Each entry in the dictionary will be a tuple containing the tag name and the new uid
 tag_dict = {}
 
 
@@ -107,9 +112,9 @@ def process_field(field: dict) -> tuple:
 
     # Ignore fields with certain names or empty values
     if not f_value:
-        raise ValueError('empty field')
+        raise ValueError(f'empty field {f_name}')
     if f_name in ['508', 'If lost, call']:
-        raise ValueError('ignored name')
+        raise ValueError(f'ignored name {f_name}')
 
     # Fix naming problems and sensitive flags
     if f_name == 'Add. password':
@@ -173,11 +178,20 @@ def import_tags(db: Database, folder_list: list):
     :param folder_list: list of folders/tags
     :return:
     """
+    # Iterate over all the folder definitions and create the dictionary with the mapping
     for folder in folder_list:
         t_name, t_uid = process_tag(folder['title'], folder['uuid'])
-        tag_dict[t_uid] = Uid.get_uid()
-        db.tag_table.add(t_name, tag_dict[t_uid])
+        tag_dict[t_uid] = (t_name, TagTableUid.get_uid())
+
+    # Clear the tag uid couters to avoid duplicate uids.
+    TagTableUid.clear()
+
+    # Add the tags to the table
+    for key in tag_dict:
+        t_name, t_uid = tag_dict[key]
+        db.tag_table.add(t_name, t_uid)
     db.tag_table.add(TAG_DEFAULT)
+    # db.tag_table.dump()
 
 
 def import_fields(db: Database, item_list: list):
@@ -193,6 +207,7 @@ def import_fields(db: Database, item_list: list):
                 db.field_table.add(f_name, f_sensitive)
             except (ValueError, KeyError):
                 pass
+    # db.field_table.dump()
 
 
 def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
@@ -227,7 +242,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
                 note = value
             elif key == 'folders':  # list
                 for folder in value:
-                    tag_uid = tag_dict[folder]
+                    tag_uid = tag_dict[folder][1]
                     if db.tag_table.get_name(tag_uid):
                         db.tag_table.increment(uid=tag_uid)
                         folder_list.append(tag_uid)
@@ -332,6 +347,7 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Print output database to stdout')
 
+    # args = parser.parse_args(['pdb.json'])
     args = parser.parse_args()
 
     # Get the password to encrypt the output database
