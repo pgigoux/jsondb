@@ -134,7 +134,16 @@ def print_line(width=70):
     Print an horizontal line
     :param: with: line with in characters
     """
-    print(u'\u2015' * width)
+    print(horizontal_line(width=width))
+
+
+def horizontal_line(width=40) -> str:
+    """
+    Return string containing a line drawn using the \u2015 unicode.
+    :param width: line with (characters)
+    :return: string with line characters
+    """
+    return u'\u2015' * width
 
 
 def trace(label: str, *args):
