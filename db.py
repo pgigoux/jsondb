@@ -97,7 +97,7 @@ class Database:
             # Read the field table
             try:
                 for field in json_data[DB_FIELDS_KEY]:
-                    self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY])
+                    self.field_table.add(field[FIELD_NAME_KEY], field[FIELD_SENSITIVE_KEY], field[KEY_UID])
             except Exception as e:
                 self.clear()
                 raise ValueError(f'failed to read field table: {repr(e)}')
