@@ -1,6 +1,7 @@
 import re
 from os.path import exists
 from typing import Optional
+
 from db import Database, DEFAULT_DATABASE_NAME
 from items import Item, Field
 from utils import get_password, timestamp_to_time, print_line, sensitive_mark, trace, todo
@@ -245,7 +246,7 @@ class CommandProcessor:
                 assert isinstance(item, Item)
                 print(f'{item.get_id()} - {item.name}')
 
-    def item_print(self, uid: int):
+    def item_print(self, uid: int, show_sensitive: bool):
         trace('print_item', uid)
         if self.db_loaded():
             print_line()
@@ -257,16 +258,20 @@ class CommandProcessor:
                     print(f'UID:  {item.get_id()}')
                     print(f'Name: {item.get_name()}')
                     print(f'Date: {timestamp_to_time(item.get_timestamp())}')
-                    tag_list = [self.db.tag_table.get_name(x) for x in item.get_tags()]
-                    print(f'Tags: {tag_list}')
+                    print(f'Tags: {self.db.tag_table.get_tag_names(item.get_tags())}')
                     for field in item.next_field():
                         assert isinstance(field, Field)
+                        # f_sensitive = field.get_sensitive()
+                        # if f_sensitive and self.db.crypt_key:
+                        #     field_value = self.db.crypt_key.decrypt_str2str(field.get_value())
+                        # else:
+                        #     field_value = field.get_value()
+                        # f_value, f_sensitive = self.db.get_field_value(field)
+                        # f_value = field.get_value()
+                        # f_value = field.get_value(self.db.crypt_key)
+                        f_value = field.get_decrypted_value(self.db.crypt_key) if show_sensitive else field.get_value()
                         f_sensitive = field.get_sensitive()
-                        if f_sensitive and self.db.crypt_key:
-                            field_value = self.db.crypt_key.decrypt_str2str(field.get_value())
-                        else:
-                            field_value = field.get_value()
-                        print(f'   {field.get_id()} {sensitive_mark(f_sensitive)} {field.get_name()} {field_value}')
+                        print(f'   {field.get_id()} {sensitive_mark(f_sensitive)} {field.get_name()} {f_value}')
                     print('Note:')
                     if len(item.get_note()) > 0:
                         print(f'{item.get_note()}')

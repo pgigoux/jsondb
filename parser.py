@@ -136,6 +136,17 @@ class Parser:
         else:
             self.error('name expected', tok)
 
+    def item_print(self, token: Token):
+        """
+        item_print_command: PRINT [SW_SENSITIVE]
+        :param token: item token
+        """
+        tok = self.get_token()
+        if tok.tid == Tid.SW_SENSITIVE:
+            self.cp.item_print(token.value, True)
+        else:
+            self.cp.item_print(token.value, False)
+
     def item_command(self, token: Token):
         """
         item_command : ITEM subcommand
@@ -146,10 +157,11 @@ class Parser:
             self.cp.item_list()
         elif token.tid in [Tid.PRINT, Tid.DUMP, Tid.DELETE]:
             tok = self.get_token()
-            trace('print & dump', tok)
+            trace('print, dump, delete', tok)
             if tok.tid == Tid.VALUE:
                 if token.tid == Tid.PRINT:
-                    self.cp.item_print(tok.value)
+                    # self.cp.item_print(tok.value)
+                    self.item_print(tok)
                 elif token.tid == Tid.DELETE:
                     self.cp.item_delete(tok.value)
                 else:
