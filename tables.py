@@ -1,5 +1,5 @@
 from typing import Optional
-from utils import Uid
+from uid import TagTableUid, FieldTableUid
 from common import KEY_NAME, KEY_UID, KEY_COUNT, FIELD_SENSITIVE_KEY
 
 # List of standard table keys. Used to exclude keys from the user defined attributes
@@ -82,15 +82,16 @@ class Table:
         # Enter elements to the table
         if name not in self.name_dict:
 
-            # The unique identifier is optional.
-            # Generate one if not present and make sure it's of the right type.
+            # The unique identifier
             uid = None
             if KEY_UID in kwargs:
                 uid = kwargs[KEY_UID]
             if uid is None:
-                uid = Uid.get_uid()
-            else:
-                uid = int(uid)
+                raise ValueError('null uid')
+            # if uid is None:
+            #     uid = Uid.get_uid()
+            # else:
+            #     uid = int(uid)
 
             # Update table
             self.name_dict[name] = uid
@@ -222,6 +223,12 @@ class TagTable(Table):
         :param tag_name: tag name
         :param uid: unique identifier (optional)
         """
+        if self.has_name(tag_name):
+            raise KeyError(f'{tag_name} already exists')
+        if uid is None:
+            uid = TagTableUid.get_uid()
+        else:
+            TagTableUid.add_uid(uid)
         super().add(name=tag_name, uid=uid)
 
     def next(self) -> tuple[str, str, int]:
@@ -254,15 +261,15 @@ class FieldTable(Table):
         :param sensitive: sensitive?
         :param uid: unique identifier
         """
+        if self.has_name(name):
+            raise KeyError(f'{name} already exists')
+        if uid is None:
+            uid = FieldTableUid.get_uid()
+        else:
+            FieldTableUid.add_uid(uid)
+        if uid == 658:
+            pass
         super().add(name=name, uid=uid, sensitive=sensitive)
-
-    # def is_sensitive(self, uid: int):
-    #     """
-    #     Check whether a field is sensitive
-    #     :param uid: unique identifier
-    #     :return: True if sensitive, False otherwise
-    #     """
-    #     return self.get_attributes(uid)[FIELD_SENSITIVE_KEY]
 
     def is_sensitive(self, name='', uid: Optional[int] = None):
         """
