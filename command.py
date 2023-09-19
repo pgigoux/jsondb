@@ -230,6 +230,9 @@ class CommandProcessor:
                 self.error('cannot remove field {name}', e)
 
     def field_dump(self):
+        """
+        Dump the field table
+        """
         trace('field_dump')
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -240,6 +243,9 @@ class CommandProcessor:
     # -----------------------------------------------------------------
 
     def item_list(self):
+        """
+        List all items
+        """
         trace('item_list')
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -248,6 +254,11 @@ class CommandProcessor:
                 print(f'{item.get_id()} - {item.name}')
 
     def item_print(self, uid: int, show_sensitive: bool):
+        """
+        Print item
+        :param uid: item uid
+        :param show_sensitive: print sensitive fields unencrypted
+        """
         trace('print_item', uid)
         if self.db_loaded():
             print_line()
@@ -262,14 +273,6 @@ class CommandProcessor:
                     print(f'Tags: {self.db.tag_table.get_tag_names(item.get_tags())}')
                     for field in item.next_field():
                         assert isinstance(field, Field)
-                        # f_sensitive = field.get_sensitive()
-                        # if f_sensitive and self.db.crypt_key:
-                        #     field_value = self.db.crypt_key.decrypt_str2str(field.get_value())
-                        # else:
-                        #     field_value = field.get_value()
-                        # f_value, f_sensitive = self.db.get_field_value(field)
-                        # f_value = field.get_value()
-                        # f_value = field.get_value(self.db.crypt_key)
                         f_value = field.get_decrypted_value(self.db.crypt_key) if show_sensitive else field.get_value()
                         f_sensitive = field.get_sensitive()
                         print(f'   {field.get_id()} {sensitive_mark(f_sensitive)} {field.get_name()} {f_value}')
@@ -283,17 +286,30 @@ class CommandProcessor:
                 self.error(f'item {uid} not found')
 
     def item_count(self):
+        """
+        Print the number of items
+        :return:
+        """
         trace('item_count')
         if self.db_loaded():
             assert isinstance(self.db, Database)
             print(len(self.db.item_collection))
 
-    def item_search(self, name: str, name_flag: bool, tag_flag: bool,
+    def item_search(self, pattern: str, name_flag: bool, tag_flag: bool,
                     field_name_flag: bool, field_value_flag: bool, note_flag: bool):
-        trace('item_search', name, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
+        """
+        Search for a string pattern in all items.
+        :param pattern: pattern to search for
+        :param name_flag: search in name?
+        :param tag_flag: search in tags?
+        :param field_name_flag: search in field names?
+        :param field_value_flag: search in field values?
+        :param note_flag: search in note?
+        """
+        trace('item_search', pattern, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
         if self.db_loaded():
             assert isinstance(self.db, Database)
-            item_list = self.db.search(name, item_name_flag=name_flag, tag_flag=tag_flag,
+            item_list = self.db.search(pattern, item_name_flag=name_flag, tag_flag=tag_flag,
                                        field_name_flag=field_name_flag, field_value_flag=field_value_flag,
                                        note_flag=note_flag)
             for item in item_list:
@@ -301,17 +317,42 @@ class CommandProcessor:
                 print(f'{item.get_id()} - {item.name}')
 
     def item_delete(self, uid: int):
-        trace('item_count')
+        """
+        Delete item
+        :param uid: item uid
+        """
+        trace(f'item_count {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
             todo('item_delete', uid)
 
-    def item_add(self):
-        trace('item_add')
+    def item_create(self):
+        """
+        Create new item
+        """
+        trace('item_create')
         if self.db_loaded():
             assert isinstance(self.db, Database)
 
+    def item_add(self, uid: int):
+        """
+        Add information to an existing item
+        :param uid: item uid
+        """
+        trace(f'item_add {uid}')
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            try:
+                item = self.db.item_collection.get(uid)
+                assert isinstance(item, Item)
+            except Exception as e:
+                self.error(f'item {uid} does not exist', e)
+
     def item_edit(self, uid: int):
+        """
+        Edit an existing item
+        :param uid: item uid
+        """
         trace('item_edit', uid)
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -325,6 +366,10 @@ class CommandProcessor:
     #     todo('item_copy')
 
     def item_dump(self, uid: int):
+        """
+        Dump item contents
+        :param uid: item uid
+        """
         trace('item_dump', uid)
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -350,7 +395,7 @@ class CommandProcessor:
     @staticmethod
     def report():
         """
-        Print uid report
+        Print a database report
         """
         TagTableUid.dump('Tag table')
         FieldTableUid.dump('Field table')
