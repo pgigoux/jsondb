@@ -20,14 +20,24 @@ class Parser:
         self.cp = CommandProcessor()
 
     @staticmethod
-    def error(error_message: str, *args):
+    def error_message(err_msg: str, *args) -> str:
+        """
+        Format error message
+        :param err_msg: message text
+        :param args: arguments
+        :return: error message
+        """
+        return f'Error: {err_msg}: ' + str([f'{x}' for x in args])
+
+    # @staticmethod
+    def error(self, err_msg: str, *args):
         """
         Print error message
-        :param error_message: message text
+        :param err_msg: message text
         :param args: arguments
-        :return:
         """
-        print(f'Error: {error_message}: ' + str([f'{x}' for x in args]))
+        # print(f'Error: {error_message}: ' + str([f'{x}' for x in args]))
+        print(self.error_message(err_msg, args))
 
     def get_token(self) -> Token:
         """
@@ -132,7 +142,7 @@ class Parser:
                     name_flag = True
                 elif tok.tid == Tid.SW_TAG:
                     tag_flag = True
-                elif tok.tid == Tid.SW_FIELD_NAME:
+                elif tok.tid == Tid.SW_FIELD:
                     field_name_flag = True
                 elif tok.tid == Tid.SW_FIELD_VALUE:
                     field_value_flag = True
@@ -146,7 +156,7 @@ class Parser:
             trace('to search', tok.value, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
             self.cp.item_search(pattern, name_flag, tag_flag, field_name_flag, field_value_flag, note_flag)
         else:
-            self.error('name expected', tok)
+            self.error('name expected')
 
     def item_print(self, token: Token):
         """
@@ -158,6 +168,92 @@ class Parser:
             self.cp.item_print(token.value, True)
         else:
             self.cp.item_print(token.value, False)
+
+    def item_options(self) -> tuple[str, list, list, str, bool]:
+        """
+        """
+        item_name = ''
+        tag_list = []
+        field_list = []
+        note = ""
+        multiline_flag = False
+        while True:
+            token = self.get_token()
+            trace('** token', token)
+            if token.tid == Tid.SW_NAME:
+                t1 = self.get_token()
+                trace('found name', t1)
+                if t1.tid in LEX_STRINGS:
+                    item_name = t1.value
+                else:
+                    raise ValueError(self.error_message('bad name', t1))
+            elif token.tid == Tid.SW_TAG:
+                t1 = self.get_token()
+                trace('found tag', t1)
+                if t1.tid == Tid.NAME:
+                    tag_list.append(t1.value)
+                else:
+                    raise ValueError(self.error_message('bad tag', t1))
+            elif token.tid == Tid.SW_FIELD:
+                t1, t2 = self.get_token(), self.get_token()
+                trace('found field', t1, t2)
+                if t1.tid == Tid.NAME and t2.tid == Tid.VALUE:
+                    field_list.append((t1.value, t2.value))
+                else:
+                    raise ValueError(self.error_message('bad field specification', t1, t2))
+            elif token.tid == Tid.SW_NOTE:
+                t1 = self.get_token()
+                trace('found note', t1)
+                if t1.tid in LEX_STRINGS:
+                    note = t1.value
+                elif t1.tid == Tid.VALUE:
+                    note = str(t1.value)
+                else:
+                    raise ValueError(self.error_message('bad note', t1))
+            elif token.tid == Tid.SW_NOTE_TEXT:
+                trace('found note text')
+                multiline_flag = True
+            elif token.tid == Tid.EOS:
+                trace('eos')
+                break
+            else:
+                raise ValueError(self.error_message('unknown item option', token))
+        return item_name, tag_list, field_list, note, multiline_flag
+        # print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+
+    def item_create(self):
+        """
+        item_create_command: ITEM CREATE [options]
+        """
+        trace('item_create')
+        try:
+            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
+            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+        except Exception as e:
+            self.error(str(e))
+
+    def item_add(self, token: Token):
+        """
+        :param token: item uid token
+        """
+        trace('item_add', token)
+        try:
+            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
+            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+        except Exception as e:
+            self.error(str(e))
+
+    def item_edit(self, token: Token):
+        """
+        :param token: item uid token
+        :return:
+        """
+        trace('item_edit', token)
+        try:
+            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
+            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+        except Exception as e:
+            self.error(str(e))
 
     def item_command(self, token: Token):
         """
@@ -184,12 +280,15 @@ class Parser:
             self.cp.item_count()
         elif token.tid == Tid.SEARCH:
             self.item_search_command()
-        elif token.tid == Tid.ADD:
-            self.cp.item_add()
-        elif token.tid == Tid.EDIT:
+        elif token.tid == Tid.CREATE:
+            self.item_create()
+        elif token.tid in [Tid.EDIT, Tid.ADD]:
             tok = self.get_token()
-            if tok.tid == Tid.VALUE:
-                self.cp.item_edit(tok.value)
+            if tok.tid == Tid.UID:
+                if token.tid == Tid.EDIT:
+                    self.item_edit(tok)
+                else:
+                    self.item_add(tok)
             else:
                 self.error('item id expected')
         else:
@@ -201,15 +300,15 @@ class Parser:
 
     def database_commands(self, token: Token):
         """
-        database_commands: CREATE [file_name] |
-                              READ [file_name] |
-                              WRITE |
-                              EXPORT file_name |
-                              DUMP
+        database_commands: NEW [file_name] |
+                           READ [file_name] |
+                           WRITE |
+                           EXPORT file_name |
+                           DUMP
         :param token: next token
         """
         trace('database_command', token)
-        if token.tid in [Tid.CREATE, Tid.READ]:
+        if token.tid in [Tid.NEW, Tid.READ]:
 
             # Get file name
             tok = self.get_token()
@@ -227,7 +326,7 @@ class Parser:
             if token.tid == Tid.READ:
                 trace('read', file_name)
                 self.cp.database_read(file_name)
-            elif token.tid == Tid.CREATE:
+            elif token.tid == Tid.NEW:
                 self.cp.database_create(file_name)
             else:
                 self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
