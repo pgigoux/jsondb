@@ -8,7 +8,7 @@ def test_keywords():
     assert lx.token('field') == Token(Tid.FIELD, 'field')
     assert lx.token('tag') == Token(Tid.TAG, 'tag')
 
-    assert lx.token('create') == Token(Tid.CREATE, 'create')
+    assert lx.token('new') == Token(Tid.NEW, 'new')
     assert lx.token('read') == Token(Tid.READ, 'read')
     assert lx.token('write') == Token(Tid.WRITE, 'write')
     assert lx.token('export') == Token(Tid.EXPORT, 'export')
@@ -20,22 +20,24 @@ def test_keywords():
     assert lx.token('count') == Token(Tid.COUNT, 'count')
     assert lx.token('rename') == Token(Tid.RENAME, 'rename')
     assert lx.token('delete') == Token(Tid.DELETE, 'delete')
+    assert lx.token('create') == Token(Tid.CREATE, 'create')
+    assert lx.token('add') == Token(Tid.ADD, 'add')
     assert lx.token('edit') == Token(Tid.EDIT, 'edit')
     assert lx.token('ren') == Token(Tid.RENAME, 'ren')
     assert lx.token('del') == Token(Tid.DELETE, 'del')
 
     assert lx.token('dump') == Token(Tid.DUMP, 'dump')
-
-
+    assert lx.token('report') == Token(Tid.REPORT, 'report')
 
 def test_switches():
     lx = Lexer()
     assert lx.token('-s') == Token(Tid.SW_SENSITIVE, True)
     assert lx.token('-n') == Token(Tid.SW_NAME, True)
     assert lx.token('-t') == Token(Tid.SW_TAG, True)
-    assert lx.token('-fn') == Token(Tid.SW_FIELD_NAME, True)
+    assert lx.token('-fn') == Token(Tid.SW_FIELD, True)
     assert lx.token('-fv') == Token(Tid.SW_FIELD_VALUE, True)
-    assert lx.token('-no') == Token(Tid.SW_NOTE, True)
+    assert lx.token('-note') == Token(Tid.SW_NOTE, True)
+    assert lx.token('-text') == Token(Tid.SW_NOTE_TEXT, True)
 
 
 def test_expressions():
@@ -46,6 +48,7 @@ def test_expressions():
     assert lx.token('10/11') == Token(Tid.VALUE, '10/11')
     assert lx.token('file.txt') == Token(Tid.FILE, 'file.txt')
     assert lx.token('word') == Token(Tid.NAME, 'word')
+    assert lx.token('o123') == Token(Tid.NAME, 'o123')
     assert lx.token('()') == Token(Tid.INVALID, '()')
 
 
