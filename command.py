@@ -321,7 +321,7 @@ class CommandProcessor:
         Delete item
         :param uid: item uid
         """
-        trace(f'item_count {uid}')
+        trace(f'item_delete {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
             todo('item_delete', uid)
