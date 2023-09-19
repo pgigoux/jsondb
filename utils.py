@@ -117,4 +117,4 @@ def todo(label: str, *args):
 
 
 if __name__ == '__main__':
-    print(Uid.get_uid())
+    pass
