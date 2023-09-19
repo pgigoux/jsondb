@@ -38,6 +38,10 @@ class Parser:
         trace('get_token', token)
         return token
 
+    # -------------------------------------------------------------
+    # Fields
+    # -------------------------------------------------------------
+
     def field_command(self, token: Token):
         """
         field_command : FIELD subcommand
@@ -71,6 +75,10 @@ class Parser:
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
+    # -------------------------------------------------------------
+    # Tag
+    # -------------------------------------------------------------
+
     def tag_command(self, token: Token):
         """
         tag_command : TAG subcommand
@@ -100,6 +108,10 @@ class Parser:
                 self.cp.tag_delete(tok.value)
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
+
+    # -------------------------------------------------------------
+    # Item
+    # -------------------------------------------------------------
 
     def item_search_command(self):
         """
@@ -183,23 +195,9 @@ class Parser:
         else:
             self.error(ERROR_UNKNOWN_SUBCOMMAND, token)
 
-    def action_command(self, cmd_token: Token, sub_token: Token):
-        """
-        action_command : ITEM subcommand |
-                         FIELD subcommand |
-                         TAG subcommand
-        :param cmd_token: command token
-        :param sub_token: subcommand token
-        """
-        trace('action_command', cmd_token, sub_token)
-        if cmd_token.tid == Tid.ITEM:
-            self.item_command(sub_token)
-        elif cmd_token.tid == Tid.FIELD:
-            self.field_command(sub_token)
-        elif cmd_token.tid == Tid.TAG:
-            self.tag_command(sub_token)
-        else:
-            self.error(ERROR_UNKNOWN_COMMAND, cmd_token)  # should never get here
+    # -------------------------------------------------------------
+    # Database
+    # -------------------------------------------------------------
 
     def database_commands(self, token: Token):
         """
@@ -250,6 +248,47 @@ class Parser:
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
+    # -------------------------------------------------------------
+    # Misc
+    # -------------------------------------------------------------
+
+    def misc_commands(self, token: Token):
+        trace('misc_command', token)
+        if token.tid == Tid.REPORT:
+            self.cp.report()
+        else:
+            self.error(ERROR_UNKNOWN_COMMAND, token)
+
+    def quit(self, keyboard_interrupt: bool):
+        """
+        Terminate the parser
+        :param keyboard_interrupt: program terminated by ctrl-c?
+        """
+        trace('quit')
+        self.cp.quit_command(keyboard_interrupt)
+
+    # -------------------------------------------------------------
+    # General
+    # -------------------------------------------------------------
+
+    def action_command(self, cmd_token: Token, sub_token: Token):
+        """
+        action_command : ITEM subcommand |
+                         FIELD subcommand |
+                         TAG subcommand
+        :param cmd_token: command token
+        :param sub_token: subcommand token
+        """
+        trace('action_command', cmd_token, sub_token)
+        if cmd_token.tid == Tid.ITEM:
+            self.item_command(sub_token)
+        elif cmd_token.tid == Tid.FIELD:
+            self.field_command(sub_token)
+        elif cmd_token.tid == Tid.TAG:
+            self.tag_command(sub_token)
+        else:
+            self.error(ERROR_UNKNOWN_COMMAND, cmd_token)  # should never get here
+
     def subcommand(self) -> Token:
         """
         Check whether the next token is a subcommand
@@ -269,6 +308,7 @@ class Parser:
         A command can be either an action or and input/output command
         command : action_command |
                   database_command |
+                  misc_command
         """
         token = self.lexer.next_token()
         trace('command', token)
@@ -287,13 +327,6 @@ class Parser:
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)
 
-    def misc_commands(self, token: Token):
-        trace('misc_command', token)
-        if token.tid == Tid.REPORT:
-            self.cp.report()
-        else:
-            self.error(ERROR_UNKNOWN_COMMAND, token)
-
     def execute(self, command: str):
         """
         Parse and execute command
@@ -302,14 +335,6 @@ class Parser:
         self.cmd = command.strip()
         self.lexer.input(self.cmd)
         return self.command()
-
-    def quit(self, keyboard_interrupt: bool):
-        """
-        Terminate the parser
-        :param keyboard_interrupt: program terminated by ctrl-c?
-        """
-        trace('quit')
-        self.cp.quit_command(keyboard_interrupt)
 
 
 if __name__ == '__main__':
