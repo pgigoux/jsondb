@@ -8,8 +8,7 @@ class Tid(Enum):
     ITEM = auto()
     FIELD = auto()
     TAG = auto()
-    ADD = auto()
-    CREATE = auto()
+    NEW = auto()
     READ = auto()
     WRITE = auto()
     EXPORT = auto()
@@ -21,6 +20,8 @@ class Tid(Enum):
     COUNT = auto()
     RENAME = auto()
     DELETE = auto()
+    CREATE = auto()
+    ADD = auto()
     EDIT = auto()
     # data
     UID = auto()
@@ -34,10 +35,11 @@ class Tid(Enum):
     # switches
     SW_SENSITIVE = auto()
     SW_NAME = auto()
-    SW_FIELD_NAME = auto()
+    SW_FIELD = auto()
     SW_FIELD_VALUE = auto()
     SW_TAG = auto()
     SW_NOTE = auto()
+    SW_NOTE_TEXT = auto()  # multiline note
     # error
     INVALID = auto()
 
@@ -51,20 +53,20 @@ class State(Enum):
 
 # Token classes
 LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
-LEX_DATABASE = [Tid.CREATE, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
+LEX_DATABASE = [Tid.NEW, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
 LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
-                   Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
+                   Tid.CREATE, Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
 LEX_MISC = [Tid.REPORT]
 LEX_STRINGS = [Tid.NAME, Tid.STRING]
 
 # Regular expressions
-LONG_DATE_PATTERN = r'\d\d/\d\d/\d\d\d\d'
-SHORT_DATE_PATTERN = r'\d\d/\d\d/\d\d'
-MONTH_YEAR_PATTERN = r'\d\d/\d\d'
-FILE_PATTERN = r'[a-z0-9]+\.[a-z0-9]+'
-NAME_PATTERN = r'[a-zA-Z_][a-zA-Z_0-9]*'
-INT_PATTERN = r'\d+'
-FLOAT_PATTERN = r'\d*\.\d+'
+LONG_DATE_PATTERN = r'^\d\d/\d\d/\d\d\d\d'
+SHORT_DATE_PATTERN = r'^\d\d/\d\d/\d\d'
+MONTH_YEAR_PATTERN = r'^\d\d/\d\d'
+FILE_PATTERN = r'^[a-z0-9]+\.[a-z0-9]+'
+NAME_PATTERN = r'^[a-zA-Z_][a-zA-Z_0-9]*'
+INT_PATTERN = r'^\d+'
+FLOAT_PATTERN = r'^\d*\.\d+'
 
 # Valid string delimiters
 STRING_DELIMITERS = ['\'', '"']
@@ -109,10 +111,10 @@ class Lexer:
         self.state = State.START
         self.keywords = {
             'item': Tid.ITEM, 'field': Tid.FIELD, 'tag': Tid.TAG,
-            'create': Tid.CREATE, 'read': Tid.READ, 'write': Tid.WRITE,
+            'new': Tid.NEW, 'read': Tid.READ, 'write': Tid.WRITE,
             'export': Tid.EXPORT, 'print': Tid.PRINT, 'dump': Tid.DUMP,
             'list': Tid.LIST, 'count': Tid.COUNT, 'search': Tid.SEARCH,
-            'add': Tid.ADD, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
+            'create': Tid.CREATE, 'add': Tid.ADD, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
             'report': Tid.REPORT,
             # aliases
             'save': Tid.WRITE, 'ren': Tid.RENAME, 'del': Tid.DELETE
@@ -121,9 +123,11 @@ class Lexer:
             '-s': Tid.SW_SENSITIVE,
             '-n': Tid.SW_NAME,
             '-t': Tid.SW_TAG,
-            '-fn': Tid.SW_FIELD_NAME,
+            '-f': Tid.SW_FIELD,
+            '-fn': Tid.SW_FIELD,
             '-fv': Tid.SW_FIELD_VALUE,
-            '-no': Tid.SW_NOTE
+            '-note': Tid.SW_NOTE,
+            '-text': Tid.SW_NOTE_TEXT
         }
 
     def input(self, command: str):
@@ -206,7 +210,7 @@ class Lexer:
 
 if __name__ == '__main__':
     lx = Lexer()
-    lx.input('item name "this is a string" list 20/10/2022 07/24 3.4 7 -s -n -t -fn -fv -no')
+    lx.input('item name "this is a string" security_1 list 20/10/2022 07/24 3.4 7 -s -n -t -fn -fv -note')
     while True:
         tok = lx.next_token()
         print(tok)
