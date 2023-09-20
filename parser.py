@@ -1,6 +1,6 @@
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
-from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_STRINGS
+from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_VALUES, LEX_STRINGS
 from utils import trace, todo
 
 # Error messages
@@ -197,7 +197,7 @@ class Parser:
             elif token.tid == Tid.SW_FIELD:
                 t1, t2 = self.get_token(), self.get_token()
                 trace('found field', t1, t2)
-                if t1.tid == Tid.NAME and t2.tid == Tid.VALUE:
+                if t1.tid == Tid.NAME and t2.tid in LEX_VALUES:
                     field_list.append((t1.value, t2.value))
                 else:
                     raise ValueError(self.error_message('bad field specification', t1, t2))
@@ -231,6 +231,9 @@ class Parser:
             print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
         except Exception as e:
             self.error(str(e))
+            return
+        self.cp.item_create(item_name, tag_list, field_list, note, multiline_flag)
+
 
     def item_add(self, token: Token):
         """
