@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generator, Optional, Union
 from crypt import Crypt
 from uid import ItemUid, FieldUid
-from utils import filter_control_characters
+from utils import filter_control_characters, get_timestamp
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
 
@@ -264,13 +264,12 @@ class FieldCollection(Collection):
 
 
 class Item(Element):
-    def __init__(self, name: str, tag_list: list, note: str,
-                 time_stamp: int, field_collection: FieldCollection,
-                 uid: Optional[int] = None):
+    def __init__(self, name: str, tag_list: list, note: str, field_collection: FieldCollection,
+                 time_stamp: Optional[int] = None, uid: Optional[int] = None):
         self.name = name
         self.tags = tag_list
         self.note = note
-        self.time_stamp = time_stamp
+        self.time_stamp = get_timestamp() if time_stamp is None else time_stamp
         self.uid = ItemUid.get_uid() if uid is None else uid
         self.field_collection = field_collection
 
