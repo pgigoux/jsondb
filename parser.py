@@ -271,7 +271,6 @@ class Parser:
             trace('print, dump, delete', tok)
             if tok.tid == Tid.VALUE:
                 if token.tid == Tid.PRINT:
-                    # self.cp.item_print(tok.value)
                     self.item_print(tok)
                 elif token.tid == Tid.DELETE:
                     self.cp.item_delete(tok.value)
