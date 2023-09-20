@@ -21,7 +21,7 @@ def test_filter_control_characters():
 def test_time_stamp():
     assert isinstance(get_timestamp(), int)
     assert isinstance(get_string_timestamp(), str)
-    assert timestamp_to_string(1695226758) == '20230920131918'
+    assert timestamp_to_string(1695219467) == '20230920141747'
 
 
 if __name__ == '__main__':
