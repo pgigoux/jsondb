@@ -3,8 +3,8 @@ from os.path import exists
 from typing import Optional
 
 from db import Database, DEFAULT_DATABASE_NAME
-from items import Item, Field
-from utils import get_password, timestamp_to_time, print_line, sensitive_mark, trace, todo
+from items import Item, Field, FieldCollection
+from utils import get_password, get_timestamp, timestamp_to_string, print_line, sensitive_mark, trace, todo
 from uid import TagTableUid, FieldTableUid, FieldUid, ItemUid
 
 
@@ -269,7 +269,7 @@ class CommandProcessor:
                     assert isinstance(item, Item)
                     print(f'UID:  {item.get_id()}')
                     print(f'Name: {item.get_name()}')
-                    print(f'Date: {timestamp_to_time(item.get_timestamp())}')
+                    print(f'Date: {timestamp_to_string(item.get_timestamp())}')
                     print(f'Tags: {self.db.tag_table.get_tag_names(item.get_tags())}')
                     for field in item.next_field():
                         assert isinstance(field, Field)
@@ -326,13 +326,49 @@ class CommandProcessor:
             assert isinstance(self.db, Database)
             todo('item_delete', uid)
 
-    def item_create(self):
+    def item_create(self, item_name: str, tag_list: list, field_list, note: str, multiline_note: bool):
         """
         Create new item
         """
         trace('item_create')
         if self.db_loaded():
             assert isinstance(self.db, Database)
+
+            # Make sure the name is specified
+            if not item_name:
+                self.error('item name is required')
+                return
+
+            # Process tags
+            tag_name = ''
+            try:
+                tag_uid_list = []
+                for tag_name in tag_list:
+                    tag_uid_list.append(self.db.tag_table.get_uid(tag_name))
+            except Exception as e:
+                self.error(f'Error while adding tag {tag_name} {e}')
+                return
+            # print(f'tag uid list {tag_uid_list}')
+
+            # Process fields
+            fc = FieldCollection()
+            f_name = ''
+            try:
+                for f_name, f_value in field_list:
+                    fc.add(Field(f_name, f_value, self.db.field_table.is_sensitive(name=f_name)))
+            except Exception as e:
+                self.error(f'Error while adding field {f_name} {e}')
+                return
+            # fc.dump()
+
+            try:
+                item = Item(item_name, tag_uid_list, note, fc, time_stamp=get_timestamp())
+                # item.dump()
+                self.db.item_collection.add(item)
+                print(f'Added item {item.get_id()}')
+            except Exception as e:
+                self.error(f'Error while adding item {item_name} {e}')
+
 
     def item_add(self, uid: int):
         """
