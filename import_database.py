@@ -74,7 +74,7 @@ subdictionaries. Only a few elements in the items are really relevant.
 """
 import json
 import argparse
-import sys
+# import sys
 
 from db import Database
 from crypt import Crypt
@@ -226,7 +226,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
         # Initialize item data
         item_name = ''
         note = ''
-        time_stamp = ''
+        time_stamp = 0
         folder_list = []
         # field_list = []
         field_collection = FieldCollection()
@@ -271,7 +271,7 @@ def import_items(db: Database, item_list: list, encrypt_key: Crypt | None):
 
         # An item must have at least a name, a time stamp and at least one field
         if item_name and time_stamp and len(field_collection) > 0:
-            item = Item(item_name, folder_list, note, time_stamp, field_collection)
+            item = Item(item_name, folder_list, note, field_collection, time_stamp=time_stamp)
             db.item_collection.add(item)
         else:
             raise ValueError('incomplete item')
@@ -347,7 +347,10 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Print output database to stdout')
 
-    # args = parser.parse_args(['pdb.json'])
+    # Testing
+    # import_database('pdb.json', args.output_file, '', dump_database=False)
+    # exit(0)
+
     args = parser.parse_args()
 
     # Get the password to encrypt the output database
