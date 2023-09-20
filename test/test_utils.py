@@ -1,23 +1,5 @@
 from utils import match_strings, trimmed_string, filter_control_characters
-
-
-# def test_uid():
-#
-#     Uid.clear()
-#     assert Uid.get_uid() == Uid.FIRST_UID + 1
-#
-#     uid_1 = Uid.get_uid()
-#     assert isinstance(uid_1, int)
-#
-#     uid_2 = Uid.get_uid()
-#     assert isinstance(uid_2, int)
-#
-#     assert uid_2 == uid_1 + 1
-#
-#     # force a duplicate
-#     with pytest.raises(ValueError):
-#         Uid.reset()
-#         _ = Uid.get_uid()
+from utils import get_timestamp, get_string_timestamp, timestamp_to_string
 
 
 def test_trimmed_string():
@@ -36,5 +18,14 @@ def test_filter_control_characters():
     assert filter_control_characters(s) == '<9><9>text<10><13>'
 
 
+def test_time_stamp():
+    assert isinstance(get_timestamp(), int)
+    assert isinstance(get_string_timestamp(), str)
+    assert timestamp_to_string(1695226758) == '20230920131918'
+
+
 if __name__ == '__main__':
-    pass
+    test_trimmed_string()
+    test_match_strings()
+    test_filter_control_characters()
+    test_time_stamp()

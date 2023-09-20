@@ -9,7 +9,7 @@ from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_FIELDS_KEY
 from common import DEFAULT_DATABASE_NAME
 from tables import TagTable, FieldTable
-from utils import timestamp
+from utils import get_string_timestamp
 from crypt import Crypt
 
 # The database is stored on disk as a json dictionary with three keys
@@ -112,7 +112,8 @@ class Database:
                         field = json_item[ITEM_FIELDS_KEY][field_uid]
                         fc.add(Field(field[FIELD_NAME_KEY], field[FIELD_VALUE_KEY], field[FIELD_SENSITIVE_KEY]))
                     item = Item(json_item[ITEM_NAME_KEY], json_item[ITEM_TAG_LIST_KEY],
-                                json_item[ITEM_NOTE_KEY], json_item[ITEM_TIMESTAMP_KEY], fc)
+                                json_item[ITEM_NOTE_KEY], fc,
+                                time_stamp=json_item[ITEM_TIMESTAMP_KEY])
                     self.item_collection.add(item)
                     self.update_tables(item)
             except Exception as e:
@@ -136,7 +137,7 @@ class Database:
 
         # Rename files. The old file is renamed using a time stamp.
         if exists(self.file_name):
-            os.rename(self.file_name, self.file_name + '-' + timestamp())
+            os.rename(self.file_name, self.file_name + '-' + get_string_timestamp())
         os.rename(TEMP_FILE, self.file_name)
 
     def export_to_json(self, file_name: str):
@@ -185,20 +186,6 @@ class Database:
                 output_list.append(item)
 
         return output_list
-
-    # def get_field_value(self, field: Field) -> tuple[str, bool]:
-    #     """
-    #     Return the field value and sensitive flag
-    #     Decrypt the field value if the field is sensitive and the encryption key is set.
-    #     :param field: field
-    #     :return: tuple with the field value and sensitive flag
-    #     """
-    #     f_sensitive = field.get_sensitive()
-    #     if f_sensitive and self.crypt_key:
-    #         field_value = self.crypt_key.decrypt_str2str(field.get_value())
-    #     else:
-    #         field_value = field.get_value()
-    #     return field_value, f_sensitive
 
     def export(self, crypt: Optional[Crypt] = None):
         """

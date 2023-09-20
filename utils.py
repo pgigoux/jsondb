@@ -41,23 +41,30 @@ def filter_control_characters(value: str) -> str:
     return o_str
 
 
-def timestamp() -> str:
+def get_timestamp() -> int:
     """
-    Return a string time stamp up to the second.
+    Return a Unix timestamp, up to the second
+    :return: time stamp
+    """
+    return int((datetime.now() - datetime(1970, 1, 1)).total_seconds())
+
+
+def get_string_timestamp() -> str:
+    """
+    Return a time stamp in string format, up to the second
     :return: time stamp
     """
     return time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
 
-def timestamp_to_time(time_stamp: int) -> str:
+def timestamp_to_string(time_stamp: int) -> str:
     """
-    Return the local date and time corresponding to the POSIX timestamp
-    Time is returned as yyyy-mm-dd hh:mm:ss
-    :param time_stamp: time stamp
-    :return: string representation of the time
+    Convert a Unix time stamp into a string, up to the second
+    :param time_stamp: unix time stamp
+    :return: string of the form 'YYYYMMDDHHMMSS'
     """
     try:
-        return str(datetime.fromtimestamp(time_stamp))
+        return datetime.fromtimestamp(time_stamp).strftime('%Y%m%d%H%M%S')
     except OverflowError:
         return 'overflow'
 
