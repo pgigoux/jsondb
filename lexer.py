@@ -58,6 +58,7 @@ LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
                    Tid.CREATE, Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
 LEX_MISC = [Tid.REPORT]
 LEX_STRINGS = [Tid.NAME, Tid.STRING]
+LEX_VALUES = [Tid.VALUE, Tid.NAME, Tid.FILE, Tid.STRING]
 
 # Regular expressions
 LONG_DATE_PATTERN = r'^\d\d/\d\d/\d\d\d\d'
