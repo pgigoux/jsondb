@@ -1,4 +1,3 @@
-from enum import Enum, auto
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
 from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_VALUES, LEX_STRINGS
