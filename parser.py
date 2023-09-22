@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
 from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_VALUES, LEX_STRINGS
@@ -20,24 +21,17 @@ class Parser:
         self.cp = CommandProcessor()
 
     @staticmethod
-    def error_message(err_msg: str, *args) -> str:
-        """
-        Format error message
-        :param err_msg: message text
-        :param args: arguments
-        :return: error message
-        """
-        return f'Error: {err_msg}: ' + str([f'{x}' for x in args])
-
-    # @staticmethod
-    def error(self, err_msg: str, *args):
+    def error(err_msg: str, *args):
         """
         Print error message
         :param err_msg: message text
         :param args: arguments
         """
-        # print(f'Error: {error_message}: ' + str([f'{x}' for x in args]))
-        print(self.error_message(err_msg, args))
+        if args:
+            print(f'Error: {err_msg}: ' + str([f'{x}' for x in args]))
+        else:
+            print(f'Error: {err_msg}')
+        # print('Error:', self.error_message(err_msg, args))
 
     def get_token(self) -> Token:
         """
@@ -169,38 +163,56 @@ class Parser:
         else:
             self.cp.item_print(token.value, False)
 
-    def item_options(self) -> tuple[str, list, list, str, bool]:
+    def item_options(self, delete_flag=False) -> tuple[str, list, list, list, str, bool]:
         """
+        Get item create/add/edit options
+        :param delete_flag: accept SW_FIELD_DELETE?
+        :return: tuple
         """
         item_name = ''
         tag_list = []
         field_list = []
+        field_delete_list = []
         note = ""
-        multiline_flag = False
+        multiline_note = False
         while True:
             token = self.get_token()
-            trace('** token', token)
+            trace('-- token', token)
             if token.tid == Tid.SW_NAME:
                 t1 = self.get_token()
                 trace('found name', t1)
                 if t1.tid in LEX_STRINGS:
                     item_name = t1.value
                 else:
-                    raise ValueError(self.error_message('bad name', t1))
+                    raise ValueError(f'bad item name {t1}')
+
             elif token.tid == Tid.SW_TAG:
                 t1 = self.get_token()
                 trace('found tag', t1)
                 if t1.tid == Tid.NAME:
                     tag_list.append(t1.value)
                 else:
-                    raise ValueError(self.error_message('bad tag', t1))
+                    raise ValueError(f'bad tag {t1}')
+
             elif token.tid == Tid.SW_FIELD:
                 t1, t2 = self.get_token(), self.get_token()
                 trace('found field', t1, t2)
                 if t1.tid == Tid.NAME and t2.tid in LEX_VALUES:
                     field_list.append((t1.value, t2.value))
                 else:
-                    raise ValueError(self.error_message('bad field specification', t1, t2))
+                    raise ValueError(f'bad field name/value {t1}')
+
+            elif token.tid == Tid.SW_FIELD_DELETE:
+                t1 = self.get_token()
+                if delete_flag:
+                    trace('found field delete', t1)
+                    if t1.tid == Tid.NAME:
+                        field_delete_list.append(t1.value)
+                    else:
+                        raise ValueError(f'bad field name {t1}')
+                else:
+                    raise ValueError(f'field delete not allowed {t1}')
+
             elif token.tid == Tid.SW_NOTE:
                 t1 = self.get_token()
                 trace('found note', t1)
@@ -209,31 +221,37 @@ class Parser:
                 elif t1.tid == Tid.VALUE:
                     note = str(t1.value)
                 else:
-                    raise ValueError(self.error_message('bad note', t1))
+                    raise ValueError(f'bad note {t1}')
+
             elif token.tid == Tid.SW_NOTE_TEXT:
                 trace('found note text')
-                multiline_flag = True
+                multiline_note = True
+
             elif token.tid == Tid.EOS:
                 trace('eos')
                 break
+
             else:
-                raise ValueError(self.error_message('unknown item option', token))
-        return item_name, tag_list, field_list, note, multiline_flag
-        # print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+                raise ValueError(f'unknown item option {token}')
+
+        # print(f'name="{item_name}", tags={tag_list}, fields={field_list}, field_delete={field_delete_list}'
+        #       f' note="{note}", multi={multiline_note}')multiline_note
+
+        return item_name, tag_list, field_list, field_delete_list, note, multiline_note
 
     def item_create(self):
         """
         item_create_command: ITEM CREATE [options]
         """
-        trace('item_create')
+        # trace('item_create', )
         try:
-            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
-            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+            item_name, tag_list, field_list, _, note, multiline_flag = self.item_options()
+            trace('item_create', item_name, tag_list, field_list, note, multiline_flag)
         except Exception as e:
+            print(f'--- e=[{e}')
             self.error(str(e))
             return
         self.cp.item_create(item_name, tag_list, field_list, note, multiline_flag)
-
 
     def item_add(self, token: Token):
         """
@@ -241,8 +259,8 @@ class Parser:
         """
         trace('item_add', token)
         try:
-            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
-            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+            item_name, tag_list, field_list, _, note, multiline_flag = self.item_options()
+            trace('item_add', item_name, tag_list, field_list, note, multiline_flag)
         except Exception as e:
             self.error(str(e))
 
@@ -253,8 +271,9 @@ class Parser:
         """
         trace('item_edit', token)
         try:
-            item_name, tag_list, field_list, note, multiline_flag = self.item_options()
-            print(f'name="{item_name}", tags={tag_list}, fields={field_list}, note="{note}", multi={multiline_flag}')
+            item_name, tag_list, field_list, field_delete_list, note, multiline_flag = \
+                self.item_options(delete_flag=True)
+            trace('item_edit', item_name, tag_list, field_list, field_delete_list, note, multiline_flag)
         except Exception as e:
             self.error(str(e))
 
@@ -286,7 +305,8 @@ class Parser:
             self.item_create()
         elif token.tid in [Tid.EDIT, Tid.ADD]:
             tok = self.get_token()
-            if tok.tid == Tid.UID:
+            trace('edit, add', tok)
+            if tok.tid == Tid.VALUE:
                 if token.tid == Tid.EDIT:
                     self.item_edit(tok)
                 else:
