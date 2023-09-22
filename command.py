@@ -369,7 +369,6 @@ class CommandProcessor:
             except Exception as e:
                 self.error(f'Error while adding item {item_name} {e}')
 
-
     def item_add(self, uid: int):
         """
         Add information to an existing item
