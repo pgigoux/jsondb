@@ -64,7 +64,7 @@ def timestamp_to_string(time_stamp: int) -> str:
     :return: string of the form 'YYYYMMDDHHMMSS'
     """
     try:
-        return datetime.utcfromtimestamp(time_stamp).strftime('%Y%m%d%H%M%S')
+        return datetime.utcfromtimestamp(time_stamp).strftime('%d/%b/%Y %H:%M:%S')
     except OverflowError:
         return 'overflow'
 
@@ -124,4 +124,6 @@ def todo(label: str, *args):
 
 
 if __name__ == '__main__':
+    ts = 1695495367
+    print(timestamp_to_string(ts))
     pass
