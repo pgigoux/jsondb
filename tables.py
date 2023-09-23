@@ -184,7 +184,7 @@ class Table:
         """
         Return table elements as a list of dictionaries where each element is the name,
         the unique identifier and the attributes.
-        The count is not exported since it's set dinamically at run time.
+        The count is not exported since it's set dynamically at run time.
         :return: list of elements
         """
         output_list = []
@@ -240,13 +240,21 @@ class TagTable(Table):
             uid = self.name_dict[name]
             yield uid, name, self.count(uid=uid)
 
-    def get_tag_names(self, tags: list) -> list[str]:
+    def get_tag_name_list(self, tag_uid_list: list) -> list[str]:
         """
-        Convert a list of tag uids into a list of tag names
-        :param tags: list of tag uids
+        Convert a list of tag uid into a list of tag names
+        :param tag_uid_list: list of tag uid
         :return: list of tag names
         """
-        return [self.get_name(x) for x in tags]
+        return [self.get_name(x) for x in tag_uid_list]
+
+    def get_tag_uid_list(self, tag_name_list: list) -> list[int]:
+        """
+        Convert a list of tag names into a list of tag uid
+        :param tag_name_list: list of tag names
+        :return: list of tag uid
+        """
+        return [self.get_uid(x) for x in tag_name_list]
 
 
 class FieldTable(Table):
@@ -320,7 +328,7 @@ if __name__ == '__main__':
     ft = FieldTable()
     ft.add('password', sensitive=True, uid='6')
     ft.add('url')
-    print('sensitive', ft.is_sensitive(6))
+    print('sensitive', ft.is_sensitive(uid=6))
     print(ft.export())
     ft.dump()
 
