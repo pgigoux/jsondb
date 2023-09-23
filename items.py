@@ -71,6 +71,9 @@ class Collection:
         """
         return len(self.data)
 
+    def __str__(self) -> str:
+        return ', '.join([str(self.data[x]) for x in self.data])
+
     def keys(self) -> list:
         """
         Return the list unique identifiers for the items in the collection
@@ -162,7 +165,7 @@ class Field(Element):
         """
         :return: string representation of the field
         """
-        return f'uid={self.uid}, name={self.name}, value={self.value}, sensitive={self.sensitive}'
+        return f'(uid={self.uid}, name={self.name}, value={self.value}, sensitive={self.sensitive})'
 
     def get_name(self) -> str:
         """
@@ -278,8 +281,8 @@ class Item(Element):
         :return: string representation of the item
         """
         field_list = [str(field) for field in self.field_collection.next()]
-        return f'uid={self.uid}, name={self.name}, tags={self.tags}, note={self.note}, time={self.time_stamp}, ' + \
-               f'fields={field_list}'
+        return f'(uid={self.uid}, name={self.name}, tags={self.tags}, note={self.note}, time={self.time_stamp}, ' + \
+               f'fields={field_list})'
 
     def get_name(self) -> str:
         return self.name
@@ -380,18 +383,21 @@ class ItemCollection(Collection):
 
 if __name__ == '__main__':
     fc1 = FieldCollection()
-    fc1.add(Field('one', 1, True))
-    fc1.add(Field('two', '2', False))
+    fc1.add(Field('f_one', 1, True))
+    fc1.add(Field('f_two', '2', False))
+    print(fc1)
 
     fc2 = FieldCollection()
-    fc2.add(Field('number', 1, True))
-    fc2.add(Field('letter', 'b', False))
-    fc2.add(Field('digit', '2', False))
+    fc2.add(Field('f_number', 1, True))
+    fc2.add(Field('f_letter', 'b', False))
+    fc2.add(Field('f_digit', '2', False))
+    print(fc2)
 
-    i1 = Item('one', ['a', 'b'], 'note 1', 12345, fc1)
-    i2 = Item('two', ['c', 'd'], 'note 2', 3456, fc2)
-    i3 = Item('three', ['e', 'f'], 'note 3', 68966, fc1)
-    i4 = Item('four', ['e', 'f'], 'note 3', 16443, fc2)
+    i1 = Item('i_one', ['a', 'b'], 'note 1', fc1, time_stamp=12345)
+    i2 = Item('i_two', ['c', 'd'], 'note 2', fc2, time_stamp=3456)
+    i3 = Item('i_three', ['e', 'f'], 'note 3', fc1, time_stamp=68966)
+    i4 = Item('i_four', ['e', 'f'], 'note 3', fc2, time_stamp=16433)
+    print(i1)
 
     print('--', i4.get_field_names())
 
@@ -400,6 +406,8 @@ if __name__ == '__main__':
     ic.add(i2)
     ic.add(i3)
     ic.add(i4)
+    print(ic)
+
     ic.dump()
 
     for it in ic.next():
