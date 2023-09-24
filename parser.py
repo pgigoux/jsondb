@@ -258,8 +258,9 @@ class Parser:
         """
         trace('item_add', token)
         try:
-            item_name, tag_list, field_list, _, note, multiline_flag = self.item_options()
-            trace('item_add', item_name, tag_list, field_list, note, multiline_flag)
+            item_name, tag_list, field_list, _, note, multiline_note = self.item_options()
+            trace('item_add', item_name, tag_list, field_list, note, multiline_note)
+            self.cp.item_add(token.value, item_name, tag_list, field_list, note, multiline_note)
         except Exception as e:
             self.error(str(e))
 
@@ -354,13 +355,14 @@ class Parser:
                 self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
         elif token.tid == Tid.WRITE:
-            todo('write', token.value)
+            # TODO
+            trace('write - todo', token.value)
 
         elif token.tid == Tid.EXPORT:
             tok = self.get_token()
             trace('export', tok)
             if tok.tid == Tid.FILE:
-                todo('export', tok.value)
+                trace('export - todo', tok.value)
             else:
                 self.error(ERROR_BAD_FILENAME, tok)
 

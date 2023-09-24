@@ -4,7 +4,7 @@ from typing import Optional
 
 from db import Database, DEFAULT_DATABASE_NAME
 from items import Item, Field, FieldCollection
-from utils import get_password, get_timestamp, timestamp_to_string, print_line, sensitive_mark, trace, todo
+from utils import get_password, get_timestamp, timestamp_to_string, print_line, sensitive_mark, trace
 from uid import TagTableUid, FieldTableUid, FieldUid, ItemUid
 
 
@@ -325,7 +325,8 @@ class CommandProcessor:
         trace(f'item_delete {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
-            todo('item_delete', uid)
+            # TODO
+            trace('item_delete - todo', uid)
 
     def item_create(self, item_name: str, tag_list: list, field_list, note: str, multiline_note: bool):
         """
@@ -372,36 +373,50 @@ class CommandProcessor:
             except Exception as e:
                 self.error(f'Error while adding item {item_name} {e}')
 
-    # def item_add(self, uid: int):
-    #     """
-    #     Add information to an existing item
-    #     :param uid: item uid
-    #     """
-    #     trace(f'item_add {uid}')
-    #     if self.db_loaded():
-    #         assert isinstance(self.db, Database)
-    #         try:
-    #             item = self.db.item_collection.get(uid)
-    #             assert isinstance(item, Item)
-    #         except Exception as e:
-    #             self.error(f'item {uid} does not exist', e)
+    def item_add(self, uid: int, item_name: str, tag_list: list,
+                 field_list: list, note: str, multiline_note: bool):
+        """
+        Add item
+        :param uid: item uid
+        :param item_name: item name
+        :param tag_list: tag list
+        :param field_list: list of tuples with the field,value pairs to add/edit
+        :param note: item note
+        :param multiline_note: multiline note?
+        """
+        self.item_add_edit(uid, item_name, tag_list, field_list, [], note, multiline_note, add_flag=True)
 
     def item_edit(self, uid: int, item_name: str, tag_list: list,
-                  field_list: list, field_delete_list: list,
-                  note: str, multiline_note: bool, add: Optional[bool] = False):
+                  field_list: list[tuple], field_delete_list: list,
+                  note: str, multiline_note: bool):
+        """
+        Edit item
+        :param uid: item uid
+        :param item_name: item name
+        :param tag_list: tag list
+        :param field_list: list of tuples with the field,value pairs to add/edit
+        :param field_delete_list: list of field names to delete
+        :param note: item note
+        :param multiline_note: multiline note?
+        """
+        self.item_add_edit(uid, item_name, tag_list, field_list, field_delete_list, note, multiline_note)
+
+    def item_add_edit(self, uid: int, item_name: str, tag_list: list,
+                      field_list: list, field_delete_list: list,
+                      note: str, multiline_note: bool,
+                      add_flag: Optional[bool] = False):
         """
         Edit existing item
-        :param uid:
-        :param item_name:
-        :param tag_list:
-        :param field_list:
-        :param field_delete_list:
-        :param note:
-        :param multiline_note:
-        :param add:
+        :param uid: item uid
+        :param item_name: item name
+        :param tag_list: tag list
+        :param field_list: list of tuples with the field,value pairs to add/edit
+        :param field_delete_list: list of field names to delete
+        :param note: item note
+        :param multiline_note: multiline note?
+        :param add_flag: allow adding items? (used for tags only)
         """
         trace('item_edit', uid)
-        add = True
         if self.db_loaded():
             assert isinstance(self.db, Database)
             try:
@@ -417,16 +432,18 @@ class CommandProcessor:
             trace(f'new name={new_name}, note={new_note}')
 
             # Process tags
-            try:
-                tag_uid_list = self.db.tag_table.get_tag_uid_list(tag_list)
-                if add:
-                    new_tag_list = list(set(tag_uid_list + item.get_tags()))
-                else:
-                    new_tag_list = tag_uid_list
-            except Exception as e:
-                self.error(f'Error while processing tag list {e}')
-                return
-            trace(f'tag uid list {tag_uid_list}')
+            if tag_list:
+                try:
+                    tag_uid_list = self.db.tag_table.get_tag_uid_list(tag_list)
+                    if add_flag:
+                        new_tag_list = list(set(tag_uid_list + item.get_tags()))
+                    else:
+                        new_tag_list = tag_uid_list
+                except Exception as e:
+                    self.error(f'Error while processing tag list {e}')
+                    return
+            else:
+                new_tag_list = item.get_tags()
             trace(f'new tag list {new_tag_list}')
 
             # Process fields
@@ -434,25 +451,57 @@ class CommandProcessor:
             trace('field_dict', field_dict)
             fc = FieldCollection()
             try:
-                # trace('field names', field_names)
+                # Iterate over all the fields in the existing item
                 for field in item.next_field():
                     assert isinstance(field, Field)
                     f_name, f_value, f_sensitive = field.get_name(), field.get_value(), field.get_sensitive()
-                    trace('field', f_name, f_value, f_sensitive)
+
+                    # Skip fields that should be deleted
+                    if f_name in field_delete_list:
+                        trace('skipped', f_name)
+                        continue
+
+                    # Add fields to the new field collection
+                    # Use the (new) value from the field_ dict if the field is there
+                    # Otherwise keep the old value
+                    trace('existing field', f_name, f_value, f_sensitive)
                     if f_name in field_dict:
                         fc.add(Field(f_name, field_dict[f_name], f_sensitive))
-                        del field_dict[f_name]
+                        trace(f'field value for {f_name} updated from {f_value} to {field_dict[f_name]}')
+                        del field_dict[f_name]  # remove used field
                     else:
+                        trace(f'field value for {f_name} preserved {f_value}')
                         fc.add(Field(f_name, f_value, f_sensitive))
-                if add:
-                    for f_name in field_dict:
-                        fc.add(Field(f_name, field_dict[f_name], self.db.field_table.is_sensitive(name=f_name)))
+
+                # Add any fields in the field_dict that were not processed already
+                # This will done regardless of the value of the add flag
+                for f_name in field_dict:
+                    f_sensitive = self.db.field_table.is_sensitive(name=f_name)
+                    trace(f'adding new field {f_name} {field_dict[f_name]}, {f_sensitive}')
+                    fc.add(Field(f_name, field_dict[f_name], f_sensitive))
+
             except Exception as e:
                 print(e)
 
+            # Create the new item
+            try:
+                new_item = Item(new_name, new_tag_list, new_note, fc, time_stamp=get_timestamp(), uid=item.get_id())
+                new_item.dump()
+                self.db.item_collection.update(new_item)
+            except Exception as e:
+                self.error('error when creating item', e)
+                return
 
-    # def item_copy(self, uid):
-    #     todo('item_copy')
+    def item_duplicate(self, uid: int):
+        """
+        Duplicate an item
+        :param uid:
+        :return:
+        """
+        # TODO
+        trace('item_copy - todo')
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
 
     def item_dump(self, uid: int):
         """
