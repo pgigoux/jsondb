@@ -62,12 +62,8 @@ class _Uid:
         return uid
 
     @classmethod
-    def dump(cls, title=''):
-        title = 'uid dump' if not title else title
-        print(f'{title}:')
-        print(f'\tnext  {cls.uid_next}')
-        print(f'\tlen   {len(cls.uid_list)}')
-        print(f'\tlist  {cls.uid_list[0:10]}')
+    def to_str(cls):
+        return f'next={cls.uid_next:<4d} len={len(cls.uid_list):<4d} values={cls.uid_list[:4]}..{cls.uid_list[-4:]}'
 
 
 class TagTableUid(_Uid):

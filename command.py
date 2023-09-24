@@ -547,15 +547,18 @@ class CommandProcessor:
         """
         trace(f'quit_command {self.file_name}', keyboard_interrupt)
 
-    @staticmethod
-    def report():
+    def report(self):
         """
         Print a database report
         """
-        TagTableUid.dump('Tag table')
-        FieldTableUid.dump('Field table')
-        ItemUid.dump('Items')
-        FieldUid.dump('Fields')
+        print(f'Tag table:         {len(self.db.tag_table)}')
+        print(f'Field table:       {len(self.db.field_table)}')
+        print(f'Items collection:  {len(self.db.item_collection)}')
+        print('Unique identifiers')
+        print(f'\tTag table    {TagTableUid.to_str()}')
+        print(f'\tField table  {FieldTableUid.to_str()}')
+        print(f'\tItems        {ItemUid.to_str()}')
+        print(f'\tFields       {FieldUid.to_str()}')
 
 
 if __name__ == '__main__':
