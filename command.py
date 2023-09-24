@@ -322,6 +322,7 @@ class CommandProcessor:
         Delete item
         :param uid: item uid
         """
+        # TODO
         trace(f'item_delete {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
@@ -551,14 +552,16 @@ class CommandProcessor:
         """
         Print a database report
         """
-        print(f'Tag table:         {len(self.db.tag_table)}')
-        print(f'Field table:       {len(self.db.field_table)}')
-        print(f'Items collection:  {len(self.db.item_collection)}')
-        print('Unique identifiers')
-        print(f'\tTag table    {TagTableUid.to_str()}')
-        print(f'\tField table  {FieldTableUid.to_str()}')
-        print(f'\tItems        {ItemUid.to_str()}')
-        print(f'\tFields       {FieldUid.to_str()}')
+        if self.db_loaded():
+            assert isinstance(db, Database)
+            print(f'Tag table:         {len(self.db.tag_table)}')
+            print(f'Field table:       {len(self.db.field_table)}')
+            print(f'Items collection:  {len(self.db.item_collection)}')
+            print('Unique identifiers')
+            print(f'\tTag table    {TagTableUid.to_str()}')
+            print(f'\tField table  {FieldTableUid.to_str()}')
+            print(f'\tItems        {ItemUid.to_str()}')
+            print(f'\tFields       {FieldUid.to_str()}')
 
 
 if __name__ == '__main__':
