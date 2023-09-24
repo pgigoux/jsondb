@@ -5,7 +5,7 @@ import getpass
 from datetime import datetime
 
 # Flag to control the trace output
-_trace_disable = False
+_trace_disable = True
 
 
 def match_strings(pattern: str, s: str):
@@ -128,19 +128,6 @@ def trace(label: str, *args):
         print(f'TRACE: {label}: ' + str([f'{x}' for x in args]))
     else:
         print(f'TRACE: {label}')
-
-
-# def todo(label: str, *args):
-#     """
-#     Placeholder used for code that's not yet implemented (used in debugging)
-#     :param label: label
-#     :param args: arguments
-#     :return:
-#     """
-#     if args:
-#         print(f'TODO: {label}: ' + str([f'{x}' for x in args]))
-#     else:
-#         print(f'TODO: {label}')
 
 
 if __name__ == '__main__':
