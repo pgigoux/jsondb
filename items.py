@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generator, Optional, Union
 from crypt import Crypt
 from uid import ItemUid, FieldUid
-from utils import filter_control_characters, get_timestamp
+from utils import filter_control_characters, get_timestamp, trace
 from common import FIELD_NAME_KEY, FIELD_VALUE_KEY, FIELD_UID_KEY, FIELD_SENSITIVE_KEY
 from common import ITEM_NAME_KEY, ITEM_TAG_LIST_KEY, ITEM_NOTE_KEY, ITEM_TIMESTAMP_KEY, ITEM_UID_KEY, ITEM_FIELDS_KEY
 
@@ -142,7 +142,7 @@ class Collection:
         """
         key = element.get_id()
         if key in self.data:
-            self.data[key] = Item
+            self.data[key] = element
         else:
             raise KeyError(f'{key} does not exist')
 
