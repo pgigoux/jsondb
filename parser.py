@@ -270,9 +270,10 @@ class Parser:
         """
         trace('item_edit', token)
         try:
-            item_name, tag_list, field_list, field_delete_list, note, multiline_flag = \
+            item_name, tag_list, field_list, field_delete_list, note, multiline_note = \
                 self.item_options(delete_flag=True)
-            trace('item_edit', item_name, tag_list, field_list, field_delete_list, note, multiline_flag)
+            trace('item_edit', item_name, tag_list, field_list, field_delete_list, note, multiline_note)
+            self.cp.item_edit(token.value, item_name, tag_list, field_list, field_delete_list, note, multiline_note)
         except Exception as e:
             self.error(str(e))
 
