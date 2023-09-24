@@ -12,22 +12,20 @@ def test_keywords():
     assert lx.token('read') == Token(Tid.READ, 'read')
     assert lx.token('write') == Token(Tid.WRITE, 'write')
     assert lx.token('export') == Token(Tid.EXPORT, 'export')
-    assert lx.token('save') == Token(Tid.WRITE, 'save')
 
     assert lx.token('list') == Token(Tid.LIST, 'list')
     assert lx.token('search') == Token(Tid.SEARCH, 'search')
     assert lx.token('print') == Token(Tid.PRINT, 'print')
     assert lx.token('count') == Token(Tid.COUNT, 'count')
-    assert lx.token('rename') == Token(Tid.RENAME, 'rename')
-    assert lx.token('delete') == Token(Tid.DELETE, 'delete')
+    assert lx.token('ren') == Token(Tid.RENAME, 'ren')
+    assert lx.token('del') == Token(Tid.DELETE, 'del')
     assert lx.token('create') == Token(Tid.CREATE, 'create')
     assert lx.token('add') == Token(Tid.ADD, 'add')
     assert lx.token('edit') == Token(Tid.EDIT, 'edit')
-    assert lx.token('ren') == Token(Tid.RENAME, 'ren')
-    assert lx.token('del') == Token(Tid.DELETE, 'del')
 
     assert lx.token('dump') == Token(Tid.DUMP, 'dump')
     assert lx.token('report') == Token(Tid.REPORT, 'report')
+    assert lx.token('trace') == Token(Tid.TRACE, 'trace')
 
 def test_switches():
     lx = Lexer()
@@ -37,7 +35,7 @@ def test_switches():
     assert lx.token('-fn') == Token(Tid.SW_FIELD, True)
     assert lx.token('-fv') == Token(Tid.SW_FIELD_VALUE, True)
     assert lx.token('-note') == Token(Tid.SW_NOTE, True)
-    assert lx.token('-text') == Token(Tid.SW_NOTE_TEXT, True)
+    assert lx.token('-ml') == Token(Tid.SW_MULTILINE_NOTE, True)
 
 
 def test_expressions():
