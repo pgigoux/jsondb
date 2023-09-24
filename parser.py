@@ -361,6 +361,7 @@ class Parser:
             trace('write - todo', token.value)
 
         elif token.tid == Tid.EXPORT:
+            # TODO
             tok = self.get_token()
             trace('export', tok)
             if tok.tid == Tid.FILE:
