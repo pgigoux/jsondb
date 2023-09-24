@@ -286,14 +286,16 @@ class Parser:
         trace('item_command', token)
         if token.tid == Tid.LIST:
             self.cp.item_list()
-        elif token.tid in [Tid.PRINT, Tid.DUMP, Tid.DELETE]:
+        elif token.tid in [Tid.PRINT, Tid.DUMP, Tid.DELETE, Tid.COPY]:
             tok = self.get_token()
-            trace('print, dump, delete', tok)
+            trace('print, dump, delete, copy', tok)
             if tok.tid == Tid.VALUE:
                 if token.tid == Tid.PRINT:
                     self.item_print(tok)
                 elif token.tid == Tid.DELETE:
                     self.cp.item_delete(tok.value)
+                elif token.tid == Tid.COPY:
+                    self.cp.item_copy(tok.value)
                 else:
                     self.cp.item_dump(tok.value)
             else:

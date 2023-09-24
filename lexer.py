@@ -23,6 +23,7 @@ class Tid(Enum):
     CREATE = auto()
     ADD = auto()
     EDIT = auto()
+    COPY = auto()
     # data
     UID = auto()
     NAME = auto()
@@ -56,8 +57,9 @@ class LexState(Enum):
 # Token classes
 LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
 LEX_DATABASE = [Tid.NEW, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
-LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
-                   Tid.CREATE, Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
+LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.COUNT, Tid.SEARCH,
+                   Tid.RENAME, Tid.DELETE,
+                   Tid.CREATE, Tid.COPY, Tid.ADD, Tid.EDIT]
 LEX_MISC = [Tid.REPORT, Tid.TRACE]
 LEX_STRINGS = [Tid.NAME, Tid.STRING]
 LEX_VALUES = [Tid.VALUE, Tid.NAME, Tid.FILE, Tid.STRING]
@@ -117,7 +119,8 @@ class Lexer:
             'new': Tid.NEW, 'read': Tid.READ, 'write': Tid.WRITE,
             'export': Tid.EXPORT, 'print': Tid.PRINT, 'dump': Tid.DUMP,
             'list': Tid.LIST, 'count': Tid.COUNT, 'search': Tid.SEARCH,
-            'create': Tid.CREATE, 'add': Tid.ADD, 'ren': Tid.RENAME, 'del': Tid.DELETE, 'edit': Tid.EDIT,
+            'create': Tid.CREATE, 'copy': Tid.COPY, 'add': Tid.ADD, 'edit': Tid.EDIT,
+            'ren': Tid.RENAME, 'del': Tid.DELETE,
             'report': Tid.REPORT, 'trace': Tid.TRACE,
         }
         self.switches = {

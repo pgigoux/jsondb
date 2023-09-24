@@ -325,8 +325,11 @@ class CommandProcessor:
         trace(f'item_delete {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
-            # TODO
-            trace('item_delete - todo', uid)
+            try:
+                trace('item_delete - todo', uid)
+                self.db.item_collection.remove(uid)
+            except Exception as e:
+                self.error('error while removing item', e)
 
     def item_create(self, item_name: str, tag_list: list, field_list, note: str, multiline_note: bool):
         """
@@ -350,7 +353,7 @@ class CommandProcessor:
             try:
                 tag_uid_list = self.db.tag_table.get_tag_uid_list(tag_list)
             except Exception as e:
-                self.error(f'Error while processing tag list {e}')
+                self.error(f'Error while processing tag list', e)
                 return
             trace(f'tag uid list {tag_uid_list}')
 
@@ -361,7 +364,7 @@ class CommandProcessor:
                 for f_name, f_value in field_list:
                     fc.add(Field(f_name, f_value, self.db.field_table.is_sensitive(name=f_name)))
             except Exception as e:
-                self.error(f'Error while adding field {f_name} {e}')
+                self.error(f'Error while adding field {f_name}', e)
                 return
             trace('field collection', fc)
 
@@ -371,7 +374,7 @@ class CommandProcessor:
                 self.db.item_collection.add(item)
                 print(f'Added item {item.get_id()}')
             except Exception as e:
-                self.error(f'Error while adding item {item_name} {e}')
+                self.error(f'Error while adding item {item_name}', e)
 
     def item_add(self, uid: int, item_name: str, tag_list: list,
                  field_list: list, note: str, multiline_note: bool):
@@ -440,7 +443,7 @@ class CommandProcessor:
                     else:
                         new_tag_list = tag_uid_list
                 except Exception as e:
-                    self.error(f'Error while processing tag list {e}')
+                    self.error(f'Error while processing tag list', e)
                     return
             else:
                 new_tag_list = item.get_tags()
@@ -492,16 +495,30 @@ class CommandProcessor:
                 self.error('error when creating item', e)
                 return
 
-    def item_duplicate(self, uid: int):
+    def item_copy(self, uid: int):
         """
-        Duplicate an item
-        :param uid:
-        :return:
+        Create a copy of an item with a different uid
+        The field collection is recreated and the timestamp updated.
+        :param uid: item uid
         """
-        # TODO
-        trace('item_copy - todo')
+        trace('item_copy', uid)
         if self.db_loaded():
             assert isinstance(self.db, Database)
+            try:
+                item = self.db.item_collection.get(uid)
+                assert isinstance(item, Item)
+                fc = FieldCollection()
+                for field in item.field_collection.next():
+                    assert isinstance(field, Field)
+                    f_name, f_value, f_sensitive = field.get_name(), field.get_value(), field.get_sensitive()
+                    fc.add(Field(f_name, f_value, f_sensitive))
+                new_item = Item('Copy of ' + item.get_name(), item.get_tags(), item.get_note(), fc,
+                                uid=ItemUid.get_uid())
+                trace('new item', new_item)
+                self.db.item_collection.add(new_item)
+                print(f'create item {new_item.get_id()} from {item.get_id()}')
+            except Exception as e:
+                print('cannot make copy of item', e)
 
     def item_dump(self, uid: int):
         """
