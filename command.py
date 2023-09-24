@@ -270,7 +270,8 @@ class CommandProcessor:
                     print(f'UID:  {item.get_id()}')
                     print(f'Name: {item.get_name()}')
                     print(f'Date: {timestamp_to_string(item.get_timestamp())}')
-                    print(f'Tags: {self.db.tag_table.get_tag_names(item.get_tags())}')
+                    print(f'Tags: {self.db.tag_table.get_tag_name_list(item.get_tags())}')
+                    print('Fields:')
                     for field in item.next_field():
                         assert isinstance(field, Field)
                         f_value = field.get_decrypted_value(self.db.crypt_key) if show_sensitive else field.get_value()
@@ -329,6 +330,11 @@ class CommandProcessor:
     def item_create(self, item_name: str, tag_list: list, field_list, note: str, multiline_note: bool):
         """
         Create new item
+        :param item_name:
+        :param tag_list:
+        :param field_list:
+        :param note:
+        :param multiline_note:
         """
         trace('item_create')
         if self.db_loaded():
@@ -340,15 +346,12 @@ class CommandProcessor:
                 return
 
             # Process tags
-            tag_name = ''
             try:
-                tag_uid_list = []
-                for tag_name in tag_list:
-                    tag_uid_list.append(self.db.tag_table.get_uid(tag_name))
+                tag_uid_list = self.db.tag_table.get_tag_uid_list(tag_list)
             except Exception as e:
-                self.error(f'Error while adding tag {tag_name} {e}')
+                self.error(f'Error while processing tag list {e}')
                 return
-            # print(f'tag uid list {tag_uid_list}')
+            trace(f'tag uid list {tag_uid_list}')
 
             # Process fields
             fc = FieldCollection()
@@ -359,7 +362,7 @@ class CommandProcessor:
             except Exception as e:
                 self.error(f'Error while adding field {f_name} {e}')
                 return
-            # fc.dump()
+            trace('field collection', fc)
 
             try:
                 item = Item(item_name, tag_uid_list, note, fc, time_stamp=get_timestamp())
@@ -369,26 +372,36 @@ class CommandProcessor:
             except Exception as e:
                 self.error(f'Error while adding item {item_name} {e}')
 
-    def item_add(self, uid: int):
-        """
-        Add information to an existing item
-        :param uid: item uid
-        """
-        trace(f'item_add {uid}')
-        if self.db_loaded():
-            assert isinstance(self.db, Database)
-            try:
-                item = self.db.item_collection.get(uid)
-                assert isinstance(item, Item)
-            except Exception as e:
-                self.error(f'item {uid} does not exist', e)
+    # def item_add(self, uid: int):
+    #     """
+    #     Add information to an existing item
+    #     :param uid: item uid
+    #     """
+    #     trace(f'item_add {uid}')
+    #     if self.db_loaded():
+    #         assert isinstance(self.db, Database)
+    #         try:
+    #             item = self.db.item_collection.get(uid)
+    #             assert isinstance(item, Item)
+    #         except Exception as e:
+    #             self.error(f'item {uid} does not exist', e)
 
-    def item_edit(self, uid: int):
+    def item_edit(self, uid: int, item_name: str, tag_list: list,
+                  field_list: list, field_delete_list: list,
+                  note: str, multiline_note: bool, add: Optional[bool] = False):
         """
-        Edit an existing item
-        :param uid: item uid
+        Edit existing item
+        :param uid:
+        :param item_name:
+        :param tag_list:
+        :param field_list:
+        :param field_delete_list:
+        :param note:
+        :param multiline_note:
+        :param add:
         """
         trace('item_edit', uid)
+        add = True
         if self.db_loaded():
             assert isinstance(self.db, Database)
             try:
@@ -396,6 +409,47 @@ class CommandProcessor:
                 assert isinstance(item, Item)
             except Exception as e:
                 self.error(f'item {uid} does not exist', e)
+                return
+
+            # Set new name and note
+            new_name = item_name if item_name else item.get_name()
+            new_note = note if note else item.get_note()
+            trace(f'new name={new_name}, note={new_note}')
+
+            # Process tags
+            try:
+                tag_uid_list = self.db.tag_table.get_tag_uid_list(tag_list)
+                if add:
+                    new_tag_list = list(set(tag_uid_list + item.get_tags()))
+                else:
+                    new_tag_list = tag_uid_list
+            except Exception as e:
+                self.error(f'Error while processing tag list {e}')
+                return
+            trace(f'tag uid list {tag_uid_list}')
+            trace(f'new tag list {new_tag_list}')
+
+            # Process fields
+            field_dict = {k: v for k, v in field_list}
+            trace('field_dict', field_dict)
+            fc = FieldCollection()
+            try:
+                # trace('field names', field_names)
+                for field in item.next_field():
+                    assert isinstance(field, Field)
+                    f_name, f_value, f_sensitive = field.get_name(), field.get_value(), field.get_sensitive()
+                    trace('field', f_name, f_value, f_sensitive)
+                    if f_name in field_dict:
+                        fc.add(Field(f_name, field_dict[f_name], f_sensitive))
+                        del field_dict[f_name]
+                    else:
+                        fc.add(Field(f_name, f_value, f_sensitive))
+                if add:
+                    for f_name in field_dict:
+                        fc.add(Field(f_name, field_dict[f_name], self.db.field_table.is_sensitive(name=f_name)))
+            except Exception as e:
+                print(e)
+
 
     # def item_copy(self, uid):
     #     todo('item_copy')
