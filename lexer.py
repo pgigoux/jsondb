@@ -31,6 +31,7 @@ class Tid(Enum):
     STRING = auto()
     # misc
     REPORT = auto()
+    TRACE = auto()
     EOS = auto()
     # switches
     SW_SENSITIVE = auto()
@@ -40,7 +41,7 @@ class Tid(Enum):
     SW_FIELD_DELETE = auto()
     SW_TAG = auto()
     SW_NOTE = auto()
-    SW_NOTE_TEXT = auto()  # multiline note
+    SW_MULTILINE_NOTE = auto()  # multiline note
     # error
     INVALID = auto()
 
@@ -57,7 +58,7 @@ LEX_ACTIONS = [Tid.ITEM, Tid.FIELD, Tid.TAG]
 LEX_DATABASE = [Tid.NEW, Tid.READ, Tid.WRITE, Tid.EXPORT, Tid.DUMP]
 LEX_SUBCOMMANDS = [Tid.LIST, Tid.PRINT, Tid.DUMP, Tid.SEARCH, Tid.COUNT,
                    Tid.CREATE, Tid.ADD, Tid.RENAME, Tid.DELETE, Tid.EDIT]
-LEX_MISC = [Tid.REPORT]
+LEX_MISC = [Tid.REPORT, Tid.TRACE]
 LEX_STRINGS = [Tid.NAME, Tid.STRING]
 LEX_VALUES = [Tid.VALUE, Tid.NAME, Tid.FILE, Tid.STRING]
 
@@ -116,10 +117,8 @@ class Lexer:
             'new': Tid.NEW, 'read': Tid.READ, 'write': Tid.WRITE,
             'export': Tid.EXPORT, 'print': Tid.PRINT, 'dump': Tid.DUMP,
             'list': Tid.LIST, 'count': Tid.COUNT, 'search': Tid.SEARCH,
-            'create': Tid.CREATE, 'add': Tid.ADD, 'rename': Tid.RENAME, 'delete': Tid.DELETE, 'edit': Tid.EDIT,
-            'report': Tid.REPORT,
-            # aliases
-            'save': Tid.WRITE, 'ren': Tid.RENAME, 'del': Tid.DELETE
+            'create': Tid.CREATE, 'add': Tid.ADD, 'ren': Tid.RENAME, 'del': Tid.DELETE, 'edit': Tid.EDIT,
+            'report': Tid.REPORT, 'trace': Tid.TRACE,
         }
         self.switches = {
             '-s': Tid.SW_SENSITIVE,
@@ -130,7 +129,7 @@ class Lexer:
             '-fd': Tid.SW_FIELD_DELETE,
             '-fv': Tid.SW_FIELD_VALUE,
             '-note': Tid.SW_NOTE,
-            '-text': Tid.SW_NOTE_TEXT
+            '-ml': Tid.SW_MULTILINE_NOTE
         }
 
     def input(self, command: str):
