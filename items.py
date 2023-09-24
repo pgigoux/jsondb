@@ -125,7 +125,7 @@ class Collection:
 
     def remove(self, key: str):
         """
-        Remove item identified by a unique identifier
+        Remove element identified by a unique identifier
         :param key:
         :return:
         """
