@@ -4,6 +4,9 @@ import re
 import getpass
 from datetime import datetime
 
+# Flag to control the trace output
+_trace_disable = False
+
 
 def match_strings(pattern: str, s: str):
     """
@@ -103,27 +106,44 @@ def horizontal_line(width=40) -> str:
     return u'\u2015' * width
 
 
+def trace_toggle():
+    """
+    Toggle the trace disable flag (used for debugging)
+    :return:
+    """
+    global _trace_disable
+    _trace_disable = not _trace_disable
+
+
 def trace(label: str, *args):
     """
-    Trace program execution (used in debugging)
+    Trace program execution (used for debugging)
     :param label: label
     :param args: arguments
     :return:
     """
-    print(f'TRACE: {label}: ' + str([f'{x}' for x in args]))
+    if _trace_disable:
+        return
+    if args:
+        print(f'TRACE: {label}: ' + str([f'{x}' for x in args]))
+    else:
+        print(f'TRACE: {label}')
 
 
-def todo(label: str, *args):
-    """
-    Placeholder used for code that's not yet implemented (used in debugging)
-    :param label: label
-    :param args: arguments
-    :return:
-    """
-    print(f'TODO: {label}: ' + str([f'{x}' for x in args]))
+# def todo(label: str, *args):
+#     """
+#     Placeholder used for code that's not yet implemented (used in debugging)
+#     :param label: label
+#     :param args: arguments
+#     :return:
+#     """
+#     if args:
+#         print(f'TODO: {label}: ' + str([f'{x}' for x in args]))
+#     else:
+#         print(f'TODO: {label}')
 
 
 if __name__ == '__main__':
-    ts = 1695495367
-    print(timestamp_to_string(ts))
-    pass
+    trace('hello')
+    trace_toggle()
+    trace('bye')

@@ -1,7 +1,7 @@
 from db import DEFAULT_DATABASE_NAME
 from command import CommandProcessor
 from lexer import Lexer, Token, Tid, LEX_ACTIONS, LEX_SUBCOMMANDS, LEX_DATABASE, LEX_MISC, LEX_VALUES, LEX_STRINGS
-from utils import trace, todo
+from utils import trace, trace_toggle
 
 # Error messages
 ERROR_UNKNOWN_COMMAND = 'unknown command'
@@ -222,7 +222,7 @@ class Parser:
                 else:
                     raise ValueError(f'bad note {t1}')
 
-            elif token.tid == Tid.SW_NOTE_TEXT:
+            elif token.tid == Tid.SW_MULTILINE_NOTE:
                 trace('found note text')
                 multiline_note = True
 
@@ -376,9 +376,17 @@ class Parser:
     # -------------------------------------------------------------
 
     def misc_commands(self, token: Token):
+        """
+        misc_commands: REPORT |
+                       TRACE |
+        :param token:
+        :return:
+        """
         trace('misc_command', token)
         if token.tid == Tid.REPORT:
             self.cp.report()
+        elif token.tid == Tid.TRACE:
+            trace_toggle()
         else:
             self.error(ERROR_UNKNOWN_COMMAND, token)
 
