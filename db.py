@@ -190,13 +190,19 @@ class Database:
     def export(self, crypt: Optional[Crypt] = None):
         """
         Export the database as a dictionary
-        :return:
+        The decryption key is passed as an argument instead of using the one in "self"
+        because the item collection contents should not always be decrypted (e.g. writing
+        versus exporting to json).
+        :param crypt: decryption key
         """
         return {DB_TAGS_KEY: self.tag_table.export(),
                 DB_FIELDS_KEY: self.field_table.export(),
                 DB_ITEMS_KEY: self.item_collection.export(crypt=crypt)}
 
     def dump(self):
+        """
+        Dump the database (debugging)
+        """
         print(f'-- Database {self.file_name}')
         self.tag_table.dump()
         self.field_table.dump()
