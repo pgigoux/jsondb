@@ -40,7 +40,7 @@ class CommandProcessor:
         if e is None:
             print(f'Error: {label}')
         else:
-            print(f'Error: {label} -> {e}')
+            print(f'Error: {label} - {e}')
 
     @staticmethod
     def confirm() -> bool:
@@ -58,13 +58,19 @@ class CommandProcessor:
         :param file_name: database file name
         """
         trace('database_create', file_name)
+
+        # Check whether there's a database already in memory
+        # and ask for confirmation to overwrite if that's the case.
         if self.db_loaded(msg_flag=False) and not self.confirm():
             return
+
+        # Check whether the file exists already.
+        # Create an empty database if that's not the case.
         if exists(file_name):
             self.error(f'database {file_name} already exists')
-            return
-        self.file_name = file_name
-        self.db = Database(file_name, get_password())
+        else:
+            self.file_name = file_name
+            self.db = Database(file_name, get_password())
 
     def database_read(self, file_name: str):
         """
@@ -73,16 +79,37 @@ class CommandProcessor:
         :return:
         """
         trace('database_read', file_name)
+
+        # Check whether there's a database already in memory
+        # and ask for confirmation to overwrite if that's the case.
         if self.db_loaded(msg_flag=False) and not self.confirm():
             return
 
         # Read the database
-        self.db = Database(file_name, get_password())
-        self.file_name = file_name
         try:
+            self.db = Database(file_name, get_password())
+            self.file_name = file_name
             self.db.read()
         except Exception as e:
             self.error(f'failed to read database {file_name}', e)
+
+    def database_write(self):
+        trace('database_write')
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            try:
+                self.db.write()
+            except Exception as e:
+                self.error('cannot write database', e)
+
+    def database_export(self, file_name: str):
+        trace('database_export', file_name)
+        if self.db_loaded():
+            assert isinstance(self.db, Database)
+            try:
+                self.db.export_to_json(file_name)
+            except Exception as e:
+                self.error('cannot export database', e)
 
     def database_dump(self):
         """
@@ -322,12 +349,10 @@ class CommandProcessor:
         Delete item
         :param uid: item uid
         """
-        # TODO
         trace(f'item_delete {uid}')
         if self.db_loaded():
             assert isinstance(self.db, Database)
             try:
-                trace('item_delete - todo', uid)
                 self.db.item_collection.remove(uid)
             except Exception as e:
                 self.error('error while removing item', e)
@@ -553,7 +578,6 @@ class CommandProcessor:
         Print a database report
         """
         if self.db_loaded():
-            assert isinstance(db, Database)
             print(f'Tag table:         {len(self.db.tag_table)}')
             print(f'Field table:       {len(self.db.field_table)}')
             print(f'Items collection:  {len(self.db.item_collection)}')

@@ -357,15 +357,14 @@ class Parser:
                 self.error(ERROR_UNKNOWN_COMMAND, token)  # should never get here
 
         elif token.tid == Tid.WRITE:
-            # TODO
-            trace('write - todo', token.value)
+            trace('write', token.value)
+            self.cp.database_write()
 
         elif token.tid == Tid.EXPORT:
-            # TODO
             tok = self.get_token()
             trace('export', tok)
             if tok.tid == Tid.FILE:
-                trace('export - todo', tok.value)
+                self.cp.database_export(tok.value)
             else:
                 self.error(ERROR_BAD_FILENAME, tok)
 
